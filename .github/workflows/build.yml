@@ -1,0 +1,49 @@
+name: Native core and iPadOS build
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      xcode_path:
+        description: Xcode application path on the runner
+        default: /Applications/Xcode_16.4.app
+        type: string
+permissions:
+  contents: read
+jobs:
+  portable-core:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: English repository text and UTF-8
+        run: python3 -B tools/check_repository_text.py
+      - name: Portable C++ tests (no game data or server access)
+        run: |
+          cmake -S . -B .build/host -DCMAKE_BUILD_TYPE=Debug
+          cmake --build .build/host --parallel 3
+          ctest --test-dir .build/host --output-on-failure
+          python3 -B -m unittest discover -s tests -p 'test_*.py'
+  ios:
+    runs-on: ${{ fromJSON(vars.IOS_RUNNER_LABELS || '["macos-15"]') }}
+    env:
+      DEVELOPER_DIR: ${{ inputs.xcode_path || vars.XCODE_PATH || '/Applications/Xcode_16.4.app' }}/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Archive arm64 app with iPadOS 14 minimum
+        run: bash tools/build_ios.sh
+      - name: Simulator adapter tests through in-memory URLProtocol
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c 'import sys,json; d=json.load(sys.stdin); print(next(x["udid"] for a in d["devices"].values() for x in a if x.get("isAvailable") and "iPad" in x["name"]))')
+          xcodebuild -project RBiOS.xcodeproj -scheme RBiOS -configuration Debug -destination "platform=iOS Simulator,id=$UDID" -derivedDataPath .build/Simulator -resultBundlePath .build/AdapterTests.xcresult test CODE_SIGNING_ALLOWED=NO IPHONEOS_DEPLOYMENT_TARGET=14.0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rbios-build-and-diagnostics
+          path: |
+            .build/RBiOS-unsigned.ipa
+            .build/xcode-device.log
+            .build/xcode-version.txt
+            .build/iphoneos-sdk.txt
+            .build/minimum-os-check.txt
+            .build/AdapterTests.xcresult
+          if-no-files-found: warn

@@ -1,0 +1,16 @@
+.build/
+.cache/
+.tools/
+DerivedData/
+*.ipa
+*.xcarchive/
+*.xcuserstate
+xcuserdata/
+*.dll
+*.exe
+*.pdb
+.DS_Store
+data/
+modules/
+GameData/
+__pycache__/

@@ -1,0 +1,10 @@
+# Optional local analysis only. Nothing here is required by the iOS app.
+ziglang==0.13.0
+capstone==5.0.6
+unicorn==2.1.4
+pefile==2024.8.26
+ifstools==1.15
+kbinxml==2.2
+imageio-ffmpeg==0.6.0
+clang-format==18.1.8
+pbxproj==4.3.2

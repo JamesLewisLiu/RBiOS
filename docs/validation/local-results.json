@@ -1,0 +1,604 @@
+{
+  "date": "2026-11-05",
+  "platform": "Windows",
+  "host_core": {
+    "status": "passed",
+    "compiler": "Zig 0.13.0 C++17",
+    "fma_contraction": "off",
+    "test_programs": 22,
+    "components": {
+      "core": 390,
+      "motion": 11,
+      "protocol": 59,
+      "score": 14,
+      "dispatch": 9,
+      "touch": 25,
+      "cpu": 5239,
+      "gameplay": 19,
+      "afp": 1,
+      "music_sheet": 7,
+      "note_frame": 9,
+      "route": 2,
+      "note_graphic": 12,
+      "touch_input": 5,
+      "stage_score_initialization": 2,
+      "afp_timeline": 1,
+      "stage_graphic": 12,
+      "long_note_graphic": 8,
+      "original_afp_movie_pool": 1031,
+      "game_presentation": 3
+    },
+    "scenario_programs": {
+      "stage_session": "lifecycle, deterministic single/batch score 56/56, cancellation and clock bounds",
+      "stage_long_presentation": "16 segments, 51 bindings, immutable snapshots, 1151 per-tick callbacks"
+    }
+  },
+  "python_checks": {
+    "status": "passed",
+    "tests": 9
+  },
+  "resource_audit": {
+    "charts": 2315,
+    "objects": 1818146,
+    "ifs": 882,
+    "audio": 1621,
+    "decodedFrames": 3530137320,
+    "catalog": 945,
+    "textures": 8478,
+    "textureBytes": 1128995636,
+    "errors": 0
+  },
+  "original_function_parity": {
+    "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+    "method": "bounded isolated x86 emulation, no Windows APIs or network",
+    "random_seed_cases": 36,
+    "long_tick_cases": 15,
+    "switch_long_tick_cases": 32,
+    "timing_classification_cases": 560,
+    "note_timing_cases": 424,
+    "limitations": [
+      "does not validate a complete stage or full original performance"
+    ],
+    "scope": "baseline chart/timing suite; other suites reported separately"
+  },
+  "reader_parity": {
+    "textures": [
+      {
+        "file": "characard_b_000.ifs",
+        "bytes": 4194960,
+        "sha256": "aef3e4135ba3687f9f51b595d7159bde6881ffaf548c65c0bdb549f7b5967b13"
+      },
+      {
+        "file": "characard_b_001.ifs",
+        "bytes": 4194960,
+        "sha256": "12f3beb0becafd255afcab9abb9ba165c63b1ca9a7871c8d22c50e287dfa3fde"
+      },
+      {
+        "file": "bg_00.ifs",
+        "bytes": 4194960,
+        "sha256": "4cf4b507d35875a2f2c6c0297c9c141dd0f26124d120b8e62ddcea64e6261555"
+      },
+      {
+        "file": "bg_01.ifs",
+        "bytes": 4194960,
+        "sha256": "78254d2930930228ee34e389c314ace84367666608ba28bccbd79530010ddb71"
+      },
+      {
+        "file": "4k71.ifs",
+        "bytes": 183184,
+        "sha256": "d402c812f421fa8a8c6ef6fdbc4d0e6185c82d3aa595d105e81f9b55cd426691"
+      },
+      {
+        "file": "mj_k00s.ifs",
+        "bytes": 59536,
+        "sha256": "2126622b1cb15e2dc761d7c4163dd56c6e598fc2f8969fa4fcf619f7f2457be5"
+      }
+    ],
+    "audio": [
+      {
+        "file": "rb1sys_dummy.sd9",
+        "bytes": 1840,
+        "sha256": "e830a58c5fb341b0909304355d8035c82c8f09fcb9da49f537bfc4717a9b246d"
+      },
+      {
+        "file": "sys_bag_warning.sd9",
+        "bytes": 393072,
+        "sha256": "4674a70c8e2e3e936abdf814c6bfc2ab710abfe33fa7f6f5269f000f91a0d9ff"
+      },
+      {
+        "file": "sys_bgm_cardout.sd9",
+        "bytes": 5468400,
+        "sha256": "bb719f718df871653040363a340fb3bc92e6811ee93b6a125231d9b806abd5e3"
+      },
+      {
+        "file": "1l07_joyful.2dx",
+        "bytes": 1764,
+        "sha256": "f9a8c9b949a6f1bb9a980b9575944abeaeac8907c22d7386c95909c67e11982a"
+      },
+      {
+        "file": "1l07_joyful_pre.2dx",
+        "bytes": 1764,
+        "sha256": "f9a8c9b949a6f1bb9a980b9575944abeaeac8907c22d7386c95909c67e11982a"
+      },
+      {
+        "file": "5z06_erinvenus.2dx",
+        "bytes": 28686688,
+        "sha256": "118d7d2fae691acbd342750cde5d9570d29fab890742dc08f651e00ffc8f73c7"
+      }
+    ]
+  },
+  "property_parity": {
+    "cases": 52,
+    "types": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56
+    ],
+    "transport": "none",
+    "limitations": [
+      "synthetic property trees, not original EA3 envelopes or business messages"
+    ]
+  },
+  "resource_snapshot": {
+    "files": 4834,
+    "manifest_sha256": "192181a8c697963da31cb5d33d5a82781169cb0a51bc0d11b28e4350b1572ee3",
+    "scope": "snapshot taken during this implementation; not a pre-session baseline",
+    "verified_date": "2026-11-05"
+  },
+  "xcode_project": "parsed by pbxproj 4.3.2; no Apple compilation",
+  "not_run": [
+    "Xcode archive",
+    "GitHub Actions",
+    "Apple XCTest",
+    "iPadOS 14.6 device play",
+    "real-server communication"
+  ],
+  "overall": "native offline session/presentation code connected; original assets unchanged, no score/profile persistence; host audits passed; full original effects/pages/audio and networking remain partial; Apple compilation and actual device entry unverified",
+  "motion_parity": {
+    "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+    "method": "bounded original x86 emulation; no Windows APIs or network",
+    "cases": 1090,
+    "coverage": {
+      "x_selector": 8,
+      "y_selector": 8,
+      "destination": 342,
+      "lane": 27,
+      "region": 24,
+      "boundary": 581,
+      "velocity_timeline": 100
+    },
+    "limitations": [
+      "original default field only; runtime-adjusted offsets not differentially covered",
+      "supplied route points; automatic path construction, offscreen callbacks and complete note state machine not restored",
+      "nonfinite velocities rejected by adapter; not compared to undefined original behavior"
+    ]
+  },
+  "touch_parity": {
+    "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+    "method": "bounded original x86 touch and note queries; no Windows APIs/network",
+    "cases": 3690,
+    "coverage": {
+      "H": 204,
+      "V": 204,
+      "S": 204,
+      "F": 204,
+      "M": 204,
+      "W": 204,
+      "X": 204,
+      "B": 150,
+      "P": 150,
+      "U": 150,
+      "G": 1512,
+      "J": 300
+    },
+    "limitations": [
+      "M cases isolate +172 with a boolean fixture; J and G cases execute recovered +172 geometry",
+      "finite runtime touchScale values only; no Apple touch lifecycle validation",
+      "15 original slots; source record allocation/OS input ingestion not migrated"
+    ]
+  },
+  "cpu_parity": {
+    "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+    "cases": 3478,
+    "counts": {
+      "p": 19,
+      "s": 56,
+      "r": 300,
+      "d": 456,
+      "i": 285,
+      "e": 2062,
+      "n": 300
+    },
+    "original_functions": {
+      "constructor": "0x1015D8E0",
+      "seed": "0x10065D20",
+      "range": "0x100658E0",
+      "distribution": "0x1015DA20",
+      "shuffle": "0x10005610/0x10005750",
+      "offsets": "0x1015D990",
+      "reserve": "0x1015D800",
+      "evaluate": "0x1015DBC0",
+      "special_gate": "0x1015DB50/0x100659D0"
+    },
+    "initialization": "staged original functions; original CRT allocation/vector-growth bypassed",
+    "limitations": [
+      "stage difficulty selection and chart-count extraction not restored",
+      "explicit RNG state supplied; no original startup seed selection",
+      "default x87 environment; finite CPU-use ranges; no game process or network"
+    ]
+  },
+  "score_parity": {
+    "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+    "method": "bounded original x86 execution; full score functions; no Windows APIs or network",
+    "cases": 2007,
+    "coverage": {
+      "life_increment": 360,
+      "effect": 108,
+      "event_sequence": 1200,
+      "rates_and_results": 300,
+      "reset": 30,
+      "consume_just_reflec": 9
+    },
+    "limitations": [
+      "note virtual +180 is supplied as a boolean fixture; note subtype implementation not validated",
+      "stage configuration is explicit fixture data; full stage initializer not recovered",
+      "does not validate touch-to-judgment dispatch, render or audio integration",
+      "nonfinite gauges excluded; adapter rejects zero denominators and invalid grade/side"
+    ]
+  },
+  "dispatch_parity": {
+    "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+    "cases": 10000,
+    "mode_cases": {
+      "5": 1001,
+      "3": 2988,
+      "0": 993,
+      "4": 1003,
+      "6": 997,
+      "-1": 999,
+      "1": 1032,
+      "2": 987
+    },
+    "replay_present_cases": 2000,
+    "method": "original x86 dispatcher and decision helpers; touch query boundaries use explicit boolean/reason fixtures",
+    "limitations": [
+      "CPU object absent in dispatcher differential suite; CPU.evaluate separately verified",
+      "touch/miss query internals require separate verify_touch.py coverage",
+      "does not validate stage event side effects, rendering or audio"
+    ]
+  },
+  "gameplay_parity": {
+    "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+    "cases": 1500,
+    "method": "original base-note and stage submission with presentation actors absent; original score and completion bonus execute",
+    "limitations": [
+      "AFP presentation virtuals are no-op fixtures; actual graphics/audio/lifetimes not covered",
+      "linked notes absent in original differential fixtures; logical-link integration has C++ assertions",
+      "CPU/network remote-final override not included in stage differential suite",
+      "gauge-mode zero and stageModeSix suppress terminal medal presentation; medal calculation separately verified"
+    ]
+  },
+  "protocol_parity": {
+    "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+    "player_read_cases": 8,
+    "player_read_score_schema_cases": 1,
+    "callback_status_cases": 1152,
+    "original_functions": {
+      "read_prepare": "0x1009CFE0",
+      "read_fields": "0x1009CEE0",
+      "read_score_prepare": "0x1009C490",
+      "read_score_fields": "0x1009C430",
+      "callback_status": "0x1009F1B0"
+    },
+    "method": "original x86 field builders with mocked AVS allocation/string-copy; original callback status function without imports",
+    "limitations": [
+      "no EA3 envelope, compression, HTTP headers, services/cardmng schema or server compatibility",
+      "only in-capacity ASCII sample strings; original AVS truncation not recovered"
+    ]
+  },
+  "project_structure": {
+    "pbxproj": "parsed",
+    "info_plist": "parsed",
+    "scheme": "parsed",
+    "workflow": "parsed",
+    "core_sources": 26,
+    "fma_contraction": "off",
+    "apple_compilation": "not run"
+  },
+  "resource_audit_scope": "prior complete raw-resource decode audit; unchanged decoders; all 4834 snapshot file hashes verified this implementation; native presenter now also audits all 2309 enabled catalog charts using original files in memory",
+  "new_instruction_suites": {
+    "sheet": {
+      "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+      "x87_control_word": "0x027f",
+      "cases": 12,
+      "resources": [
+        "1k01_colorful_b.ply",
+        "1k01_colorful_h.ply",
+        "1k01_colorful_m.ply"
+      ],
+      "fields_compared": 169932,
+      "scope": "original loader/counts/preparation; both chart sides; default destination option",
+      "fixtures": "bounded CRT allocation and vector construction; original constructors sampled; qsort executes original code"
+    },
+    "route": {
+      "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+      "d3dx_sha256": "3866ed143c8e32ba08b0de985575bccefb1498176cbfc6afb05425db5a5069b0",
+      "x87_control_word": "0x027f",
+      "passed": true,
+      "cases": {
+        "route_with_original_d3dx_scalar": 3000,
+        "standard_seed": 2000,
+        "chart_config": 600,
+        "redirect": 3000
+      },
+      "limitations": [
+        "D3DX scalar fallback executes original instructions; runtime CPU-specific D3DX dispatch alternatives have not been validated.",
+        "CRT _CIsqrt is bound to x87 fsqrt. Stage call order, linked-note actor state, JR activation and chart-to-route random generation are separate."
+      ]
+    },
+    "note_frame": {
+      "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+      "x87_control_word": "0x027f",
+      "cases": 4500,
+      "groups": {
+        "I": 500,
+        "L": 500,
+        "E": 500,
+        "R": 500,
+        "F": 500,
+        "S": 500,
+        "A": 1500
+      },
+      "method": "original x86 instructions, pointer-free native state adapter; byte-exact full 448-byte note state comparison",
+      "limitations": [
+        "hold-presentation effect 101589B0 is counted fixture",
+        "frame suffix motion and deletion hooks are explicit fixtures, kind-4 presentation child is scratch memory",
+        "initialization excludes linked-note lookup and preprocessed switch duration",
+        "ordinary route states run with ready paths; remote/special route hooks not covered",
+        "top-entry tempo lookup is fixed 120 BPM and timeline reset is an explicit fixture; ramp and note state execute original instructions"
+      ]
+    },
+    "touch_input": {
+      "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+      "x87_control_word": "0x027f",
+      "passed": true,
+      "frames": 3000,
+      "scope": "100619D0 + 10061E50 + 10060FD0 + 10061810 + 10061770, logical point snapshots after hardware transforms/filters",
+      "limitations": [
+        "No touch hardware sampling, original 621E0/61A60 filtering, UIKit delivery timing or device validation."
+      ]
+    },
+    "stage_order": {
+      "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+      "stage_comparator": "10157900",
+      "crt_sort": "100302D0/10030240",
+      "cases": 1000,
+      "direction_1015A100_cases": 1000,
+      "x87_control_word": "0x027f",
+      "passed": true
+    },
+    "long_graphic": {
+      "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
+      "cases": 420,
+      "coverage": {
+        "long": 180,
+        "switch": 240
+      },
+      "method": "bounded original x86 geometry/draw execution; capture-only virtual renderer",
+      "limitations": [
+        "original AFP movie playback is a separate runtime",
+        "positive bounded switch durations; original stage coordinates",
+        "movie allocation and resource binding use capture-only adapters",
+        "labels/alignments/layers also cross-checked against original initialization instructions"
+      ]
+    },
+    "stage_score": {
+      "cases": 600,
+      "bytes_per_case": 172,
+      "entry": "0x101554C0",
+      "scope": "explicit offline configuration, no server profile"
+    }
+  },
+  "stage_audit": {
+    "charts_per_side": {
+      "0": 2309,
+      "1": 2309
+    },
+    "sessions": 9236,
+    "modes": [
+      "local auto + CPU0",
+      "local no-contact manual + CPU0"
+    ],
+    "passed": true,
+    "known_short_hold_CPU_head_omissions": {
+      "0": 34,
+      "1": 34
+    },
+    "validation": "all objects generated and pool drained, auto total exact, CPU omissions restricted to original short hold boundary"
+  },
+  "stage_long_presentation": {
+    "chart_runs": 9236,
+    "frames": 62563101,
+    "long_views": 101938733,
+    "draws": 162026891,
+    "bindings": 955576,
+    "created": 7252200,
+    "released": 7252200,
+    "maximum_original_segments": 14,
+    "fixture_segments": 16,
+    "fixture_bindings": 51,
+    "limitations": [
+      "local components only, as original 10158F20; opponent has head movie only",
+      "offline session has no replay collection association",
+      "special overlays remain explicit original effect queue requests",
+      "host audit does not verify ARM64 pixels or AFP free-list equivalence"
+    ],
+    "numeric_parity": {
+      "sides": [
+        {
+          "side": 0,
+          "rows": 4618,
+          "unchanged": true
+        },
+        {
+          "side": 1,
+          "rows": 4618,
+          "unchanged": true
+        }
+      ],
+      "whole_song_runs": 9236,
+      "method": "exact output-line comparison with pre-presentation integration numeric baseline"
+    }
+  },
+  "game_presentation": {
+    "charts": 2309,
+    "sampled_frames": 522082,
+    "draws": 22085142,
+    "original_bitmaps": 131,
+    "stride": 30,
+    "filter": "",
+    "object_kinds": [
+      1632703,
+      125847,
+      0,
+      40898,
+      13602
+    ],
+    "unresolved": [
+      "original JR overlay",
+      "original switch JR overlay queue"
+    ],
+    "mode": "local auto + CPU0, original files decoded only in memory",
+    "limits": [
+      "host draw-command/bitmap integration, not Apple pixels or device play",
+      "draw commands sampled at stride; original playback updated every 60 Hz tick",
+      "no external connection, profile storage or score upload"
+    ]
+  },
+  "game_presentation_every_tick": {
+    "chart": "6k60_lastboss_w.ply",
+    "frames": 7498,
+    "draws": 561003,
+    "original_bitmaps": 130,
+    "object_kinds": [
+      1828,
+      58,
+      0,
+      34,
+      70
+    ],
+    "status": "passed",
+    "limits": "host draw descriptions and decoded bitmap access, not GPU pixel comparison"
+  },
+  "afp": {
+    "packages": 881,
+    "bitmaps": 8478,
+    "resource_checks": 37414,
+    "independent_read_comparisons": 74,
+    "timeline_host_checks": 3221,
+    "reference_fixed_frames": 2040,
+    "reference_label_samples": 798,
+    "reference_commit": "1e66fcd780afb3088ce8e78c88615a143db492ee",
+    "pool_descriptors": 37,
+    "pool_instruction_checks": 862,
+    "pool_host_checks": 1031,
+    "layer_clock_instruction_checks": 6,
+    "stage_graphic_checks": 56,
+    "full_vm": "not restored",
+    "global_initializers": "not executed",
+    "original_pages_and_fonts": "not restored"
+  },
+  "afp_release_order": {
+    "checks": 68,
+    "original_releases": 56,
+    "entry": "0x101591D0 CNoteBase reset (vtable 0x1028DE34 +20)",
+    "component_functions": {
+      "ordinary_long": "0x1015BDE0",
+      "switch_long": "0x10156690",
+      "head": "0x10155890"
+    },
+    "scope": "within-note long components before head; original full-array order; cross-note simultaneous release order needs separate validation"
+  },
+  "apple_tests_written_not_run": {
+    "adapter": 4,
+    "audio_clock": 5,
+    "input_timeline": 11
+  },
+  "persistence": {
+    "scores": "none",
+    "profiles": "none",
+    "history": "none",
+    "offline_upload_queue": "none",
+    "remaining_app_preferences": [
+      "display scale",
+      "resource access bookmark",
+      "future endpoint and server-mode configuration"
+    ]
+  },
+  "delivery_checks": {
+    "date": "2026-11-05",
+    "repository_text": {
+      "status": "passed",
+      "utf8_files": 173,
+      "literal_han_characters": 0
+    },
+    "local_markdown_file_links": 70,
+    "xcode_project_structure": "parsed; Apple compilation not run",
+    "host_test_programs_rerun": 22,
+    "python_tests_rerun": 9,
+    "kbinxml_reference_comparisons_rerun": 52,
+    "git_delivery": "local commit only; user-managed push",
+    "actions": "not dispatched; awaits user push"
+  }
+}
