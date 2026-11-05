@@ -6,7 +6,7 @@ The default Actions runner is macos-15, selecting /Applications/Xcode_16.4.app e
 
 Native core and iPadOS build runs portable C++/Python checks, an unsigned device archive, minimum-OS validation and adapter tests on an available iPad simulator. Simulated networking remains inside an in-memory URLProtocol.
 
-A local commit does not start Actions. The user will push this repository; its push event starts the workflow. No remote or run URL is currently configured.
+A local commit does not start Actions; pushing to the GitHub repository starts the workflow. The stage-frame implementation at `9cbc657` passed [Actions run 42052166298](https://github.com/JamesLewisLiu/RBiOS/actions/runs/42052166298): 22 portable C++ programs, 9 Python tests, the arm64 archive and all 21 simulator tests. The GPU regression includes nested clipping at 50%, 75% and 100% display size.
 
 The rbios-build-and-diagnostics artifact contains the IPA if packaging succeeded, Xcode/SDK versions, device log, minimum-OS report and XCTest results. A modern simulator does not validate iPadOS 14.6.
 

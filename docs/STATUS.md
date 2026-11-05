@@ -12,13 +12,13 @@ Updated 2026-11-05. Implementation, host validation, Apple builds and device pla
 | Stage frame | Original top/bottom panels, round/difficulty labels, player/orb graphics, rectangular mask and independent child clocks; 908 reference samples passed | Account text/portrait bindings, score widgets and device verification of the newly restored frame |
 | AFP clocks and pools | Switch/Bigbang/background sampling, 37 descriptors, hidden playback, reuse and within-note cleanup order | Full exhaustion behavior and independent cross-note same-tick cleanup comparison |
 | iPad stage entry | Import -> difficulty -> C++ play/CPU -> session results; Apple build passed and user screenshot shows stage completion | Instrumented original-game/device replay comparison |
-| Display and input | Fixed 768 x 1360, 50%-100% scaling, inverse mapping, timestamps and pause/background cancellation; simulator corner/line checks passed | New nested-mask GPU regression pending the next Actions run; physical multi-touch measurements |
+| Display and input | Fixed 768 x 1360, 50%-100% scaling, inverse mapping, timestamps and pause/background cancellation; simulator corner/line/nested-mask checks passed | Physical multi-touch measurements and original scene pixel parity |
 | Audio | Block decoding, sample clock, EOF/interruption/resume connected | Original hit sounds and device synchronization |
 | Scores and profiles | Memory only; no database, history or upload queue | Persistence intentionally excluded |
 | Networking | Original fields, selected callbacks, protocol/transport isolation, mocks and configuration | Full EA3 envelope, discovery/card/profile/score flow and URLSession bridge |
 | Embedded server | Lifecycle interface; unavailable without source | Server-source migration |
 | Windows build | Zig C++17 and 22 test programs passed | Not ARM64/iOS compilation evidence |
-| macos-15 Actions | Xcode 16.4 arm64 archive, minimum-OS validation and 21 simulator tests passed at a1b1777 | New frame/mask changes await this revision's build |
+| macos-15 Actions | Xcode 16.4 arm64 archive, minimum-OS validation and 21 simulator tests passed at 9cbc657, including nested masks | Simulator tests do not establish iPadOS 14.6 hardware behavior |
 | M1 / iPadOS 14.6 | User reports installation and provides stage-completion screenshots with corrected field framing | New frame graphics, performance, synchronization and instrumented touch testing |
 | Live server | No probe, login or upload | Offline tests do not establish live compatibility |
 
@@ -26,6 +26,6 @@ The DLL supplies a version check and original catalog constants. It is not loade
 
 Resources remain unchanged. Decoded pixels, PCM and AFP state live in memory. Settings cover display size, resource access and future server configuration only.
 
-The previous validated build is [Actions run 42032551303](https://github.com/JamesLewisLiu/RBiOS/actions/runs/42032551303). Subsequent frame changes require a new build and device check. Character preview cut edges are present in the original source image; see [CHARACTER_RESOURCES](CHARACTER_RESOURCES.md).
+The frame implementation passed [Actions run 42052166298](https://github.com/JamesLewisLiu/RBiOS/actions/runs/42052166298). Its unsigned IPA was inspected as arm64 device code with minimum OS 14.0. The new frame still requires a device check. Character preview cut edges are present in the original source image; see [CHARACTER_RESOURCES](CHARACTER_RESOURCES.md).
 
 See [VALIDATION](VALIDATION.md), [STAGE_SESSION](STAGE_SESSION.md), [STAGE_LONG_PRESENTATION](STAGE_LONG_PRESENTATION.md) and [GAME_PRESENTATION](GAME_PRESENTATION.md) for evidence and boundaries.

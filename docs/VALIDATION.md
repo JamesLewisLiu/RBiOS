@@ -52,12 +52,14 @@ New route/frame/sheet/input/order suites explicitly set x87 CW=0x027f. Older sui
 | Original network fields | 8 read cases,1 score-read structure,1,152 callback states | Explicit AVS allocation/string fixtures; not live protocol |
 | Resource snapshot | 4,834 files match | File set, sizes and SHA-256 since implementation-time snapshot |
 | Character bitmap completeness | All 86 original packages contain one 768 x 1360 bitmap | First character's edge alpha and visible BGRA hash checked; cut edges are in original artwork |
-| Apple baseline at a1b1777 | Unsigned arm64 archive, minimum OS 14,21 simulator tests | [Actions 42032551303](https://github.com/JamesLewisLiu/RBiOS/actions/runs/42032551303); GPU corners/judgment lines at 50/75/100%, adapter/audio/input tests |
-| New nested-mask GPU regression | Written for 50/75/100% | Requires this revision's Actions run; synthetic marker intersection, not original scene pixel parity |
+| Apple frame build at 9cbc657 | Unsigned arm64 archive, minimum OS 14,21 simulator tests | [Actions 42052166298](https://github.com/JamesLewisLiu/RBiOS/actions/runs/42052166298); GPU corners/judgment lines at 50/75/100%, adapter/audio/input tests |
+| Nested-mask GPU regression | Passed at 50/75/100%, no test skips | Synthetic marker intersection through the production renderer, not original scene pixel parity |
 | Device observation | User installation and stage-completion screenshots | Corrected playfield framing; new stage frame, timing and performance still need device validation |
 | Actual server | Not contacted | No probe, login or upload |
 
 The full decode audit processed 3,530,137,320 stereo audio frames and 1,128,995,636 texture bytes, one file at a time. These totals are coverage counters, not peak memory/performance measurements.
+
+The frame-build IPA SHA-256 is `bd9c5808eeaadf2af2825ee816b72f79683bb9adca857cc9eb4264e0d9794adc`. Its Info.plist and arm64 Mach-O both specify minimum OS 14.0. The post-implementation resource snapshot check again matched all 4,834 original files.
 
 ## Reproduction
 

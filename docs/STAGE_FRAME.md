@@ -65,6 +65,8 @@ The native test executable must include its `--frame-sample` mode. The recorded 
 
 Related regression checks also passed: four previously supported AFP packages with 2,040 fixed-frame and 798 label samples; four native charts across every difficulty; and every tick of the `6k60` lastboss W chart, covering 7,498 frames, 635,983 draws and 195 bitmaps. These checks supplement the stage-frame comparison without extending its visual or runtime claims.
 
+The implementation at `9cbc657` also passed [Actions run 42052166298](https://github.com/JamesLewisLiu/RBiOS/actions/runs/42052166298): arm64 device archive, minimum OS 14.0 and all 21 Apple simulator tests. The GPU regression exercises the production renderer with nested rectangular masks at 50%, 75% and 100%, checking both retained and excluded pixels. This uses synthetic markers; it does not compare the original stage scene against Windows pixels.
+
 ## Limits
 
 This is a static resource and instruction based restoration of the stage-frame branch. The independent comparison is not an original Windows render trace, a general implementation of every `aeplib` method, or an iPad pixel comparison. Account text, portraits, remaining score widgets, other pages and unimplemented game-session behavior require their own bindings and evidence. Original frame artwork remains proportionally fitted into the fixed logical viewport; iPad aspect-ratio margins do not imply missing source pixels. Real-device rendering, clipping, animation and touch alignment still require installation testing.

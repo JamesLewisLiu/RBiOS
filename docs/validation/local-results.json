@@ -46,7 +46,8 @@
     "catalog": 945,
     "textures": 8478,
     "textureBytes": 1128995636,
-    "errors": 0
+    "errors": 0,
+    "post_frame_snapshot_files_matched": 4834
   },
   "original_function_parity": {
     "dll_sha256": "ed0ce52a403b57be4c33ee1d87f8dca6c4c4dc71d8d2ad0107216bc8866c0fa8",
@@ -596,7 +597,7 @@
     "python_tests_rerun": 9,
     "kbinxml_reference_comparisons_rerun": 52,
     "git_delivery": "Current main repository; fixes pushed for direct Actions monitoring",
-    "actions": "Baseline a1b1777 passed; frame changes await next Actions run"
+    "actions": "Frame implementation 9cbc657 passed Actions 42052166298; this validation record changes documentation only"
   },
   "stage_frame": {
     "status": "passed",
@@ -612,7 +613,6 @@
     "limits": [
       "No original Windows render trace",
       "Account text and portrait bindings hidden and reported unresolved",
-      "New Apple nested-mask GPU checks pending next Actions run",
       "Full-catalog drawing audit not repeated after frame integration"
     ],
     "targeted_presentation": {
@@ -660,5 +660,25 @@
       "Touch/audio synchronization",
       "Performance"
     ]
+  },
+  "apple_frame_build": {
+    "revision": "9cbc657",
+    "run": "https://github.com/JamesLewisLiu/RBiOS/actions/runs/42052166298",
+    "status": "passed",
+    "runner": "macos-15",
+    "xcode": "16.4",
+    "minimum_os": "14.0",
+    "architecture": "arm64",
+    "cpp_test_programs": 22,
+    "python_tests": 9,
+    "xctests": 21,
+    "test_skips": 0,
+    "nested_mask_gpu_scales": [
+      0.5,
+      0.75,
+      1.0
+    ],
+    "ipa_sha256": "bd9c5808eeaadf2af2825ee816b72f79683bb9adca857cc9eb4264e0d9794adc",
+    "limits": "Synthetic marker GPU regression; original stage graphics need device installation testing"
   }
 }
