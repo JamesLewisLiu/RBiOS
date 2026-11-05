@@ -123,7 +123,7 @@ final class AudioStream {
         guard token == generation, let decoder = decoder, let format = format else { return }
         var pcm = Data()
         while pcm.count < 32768 && block < decoder.blockCount {
-            let decoded = try decoder.decodeBlock(block); block += 1
+            let decoded = try decoder.decodeBlock(UInt(block)); block += 1
             guard decoded.count % 4 == 0 else { throw AudioStreamError.invalidPCM }
             let available = UInt64(decoded.count / 4), skip = min(skipFrames, UInt64(decoded.count / 4))
             skipFrames -= skip

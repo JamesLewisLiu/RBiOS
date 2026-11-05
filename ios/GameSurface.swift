@@ -82,7 +82,8 @@ final class GameSurface: UIView, MTKViewDelegate {
                 node.isHidden = false; node.zRotation = 0; node.setScale(1); node.anchorPoint = CGPoint(x: 0.5, y: 0.5)
                 node.position = CGPoint(x: (left + right) / 2, y: (bottom + top) / 2); node.size = CGSize(width: width, height: height)
                 let positions = corners.map { SIMD2<Float>(Float(($0.x - left) / width), Float(($0.y - bottom) / height)) }
-                node.warpGeometry = positions.withUnsafeBufferPointer { SKWarpGeometryGrid(columns: 1, rows: 1, sourcePositions: nil, destinationPositions: $0.baseAddress) }
+                let sourcePositions: [SIMD2<Float>] = [SIMD2(0, 0), SIMD2(1, 0), SIMD2(0, 1), SIMD2(1, 1)]
+                node.warpGeometry = SKWarpGeometryGrid(columns: 1, rows: 1, sourcePositions: sourcePositions, destinationPositions: positions)
                 node.subdivisionLevels = 0
             } else { node.isHidden = false; node.warpGeometry = nil }
         }
