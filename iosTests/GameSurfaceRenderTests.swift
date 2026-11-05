@@ -8,7 +8,12 @@ final class GameSurfaceRenderTests: XCTestCase {
         guard let device = MTLCreateSystemDefaultDevice() else { throw XCTSkip("Metal is unavailable on this simulator") }
         let queue = try XCTUnwrap(device.makeCommandQueue())
         let surface = try XCTUnwrap(GameSurface(device: device))
-        surface.frame = CGRect(x: 0, y: 0, width: 1024, height: 1366)
+        let previousWindow = UIApplication.shared.windows.first { $0.isKeyWindow }
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        let host = UIViewController(); window.rootViewController = host; window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        surface.frame = host.view.bounds; host.view.addSubview(surface)
+        defer { surface.removeFromSuperview(); window.isHidden = true; previousWindow?.makeKey() }
 
         let colorDescriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .bgra8Unorm, width: 768, height: 1360, mipmapped: false)
         colorDescriptor.storageMode = .shared; colorDescriptor.usage = [.renderTarget, .shaderRead]
@@ -43,6 +48,8 @@ final class GameSurfaceRenderTests: XCTestCase {
         var renderedFrames = 0
         for fraction in [0.5, 0.75, 1.0] {
             surface.fraction = fraction; surface.layoutIfNeeded()
+            XCTAssertGreaterThan(surface.displayRect.width, 0)
+            XCTAssertGreaterThan(surface.displayRect.height, 0)
             // Render more than once so projection changes made by SpriteKit are observed.
             for _ in 0..<2 {
                 let command = try XCTUnwrap(queue.makeCommandBuffer())

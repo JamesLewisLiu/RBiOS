@@ -19,6 +19,11 @@ final class OfflineURLProtocol: URLProtocol {
 final class AdapterTests: XCTestCase {
     func testGameSurfaceKeepsFixedDrawableSize() throws {
         guard let surface = GameSurface() else { throw XCTSkip("Metal is unavailable on this simulator") }
+        let previousWindow = UIApplication.shared.windows.first { $0.isKeyWindow }
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        let host = UIViewController(); window.rootViewController = host; window.makeKeyAndVisible()
+        window.layoutIfNeeded(); host.view.addSubview(surface)
+        defer { surface.removeFromSuperview(); window.isHidden = true; previousWindow?.makeKey() }
         surface.frame = CGRect(x: 0, y: 0, width: 1024, height: 1366)
         for scale in [0.5, 0.75, 1.0] {
             surface.fraction = scale; surface.layoutIfNeeded()
@@ -26,6 +31,8 @@ final class AdapterTests: XCTestCase {
             XCTAssertEqual(surface.configuredSceneSize, CGSize(width: 768, height: 1360))
             let expected = RBBridge.displayRect(in: surface.safeAreaLayoutGuide.layoutFrame, fraction: scale)
             XCTAssertEqual(surface.displayRect, expected)
+            XCTAssertGreaterThan(surface.displayRect.width, 0)
+            XCTAssertGreaterThan(surface.displayRect.height, 0)
         }
         surface.frame = CGRect(x: 0, y: 0, width: 1366, height: 1024)
         surface.setNeedsLayout(); surface.layoutIfNeeded()
