@@ -20,8 +20,8 @@ final class GameSurface: UIView, MTKViewDelegate {
     private(set) var lastDrawableSize = CGSize.zero
     var configuredDrawableSize: CGSize { metal.drawableSize }
 
-    init?() {
-        guard let device = MTLCreateSystemDefaultDevice(), let q = device.makeCommandQueue() else { return nil }
+    init?(device: MTLDevice? = MTLCreateSystemDefaultDevice()) {
+        guard let device = device, let q = device.makeCommandQueue() else { return nil }
         metal = MTKView(frame: .zero, device: device); renderer = SKRenderer(device: device); queue = q
         super.init(frame: .zero)
         isMultipleTouchEnabled = true; backgroundColor = .black
