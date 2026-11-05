@@ -15,6 +15,8 @@ final class GameSurface: UIView, MTKViewDelegate {
     var onFrame: (() -> Void)?
     var onSuspend: (() -> Void)?
     private var sprites: [String: SKSpriteNode] = [:]
+    private var spriteRoots: [String: SKNode] = [:]
+    private var spriteClips: [String: [[CGPoint]]] = [:]
     private var textures: [String: SKTexture] = [:]
     var fraction: Double = 1 { didSet { resetTouches(); setNeedsLayout() } }
     private(set) var displayRect = CGRect.zero
@@ -47,7 +49,7 @@ final class GameSurface: UIView, MTKViewDelegate {
         metal.drawableSize = CGSize(width: 768, height: 1360)
     }
     func showOriginalImage(_ image: UIImage) {
-        sprites.removeAll(); textures.removeAll()
+        sprites.removeAll(); spriteRoots.removeAll(); spriteClips.removeAll(); textures.removeAll()
         scene.removeAllChildren()
         let texture = SKTexture(image: image); texture.filteringMode = .linear
         let node = SKSpriteNode(texture: texture)
@@ -66,10 +68,11 @@ final class GameSurface: UIView, MTKViewDelegate {
             else { texture = SKTexture(image: image); texture.filteringMode = .linear; textures[name] = texture }
             let node: SKSpriteNode
             if let cached = sprites[id] { node = cached; node.texture = texture; node.size = texture.size() }
-            else { node = SKSpriteNode(texture: texture); sprites[id] = node; scene.addChild(node) }
+            else { node = SKSpriteNode(texture: texture); sprites[id] = node; spriteRoots[id] = node; scene.addChild(node) }
             func number(_ key: String, _ fallback: Double = 0) -> CGFloat { CGFloat((draw[key] as? NSNumber)?.doubleValue ?? fallback) }
             node.position = CGPoint(x: number("x"), y: 1360 - number("y"))
-            node.zPosition = -number("layer") + CGFloat(drawIndex) * 0.00001; node.zRotation = -number("angle")
+            let z = -number("layer") + CGFloat(drawIndex) * 0.00001
+            node.zRotation = -number("angle")
             node.setScale(number("scale", 1)); node.alpha = number("alpha", 1)
             node.anchorPoint = CGPoint(x: number("anchorX", 0.5), y: 1 - number("anchorY", 0.5))
             node.blendMode = number("blend") == 8 ? .add : .alpha
@@ -90,8 +93,26 @@ final class GameSurface: UIView, MTKViewDelegate {
                 node.warpGeometry = SKWarpGeometryGrid(columns: 1, rows: 1, sourcePositions: sourcePositions, destinationPositions: positions)
                 node.subdivisionLevels = 0
             } else { node.isHidden = false; node.warpGeometry = nil }
+            let clips = (draw["clips"] as? [[NSValue]] ?? []).map { clip in
+                clip.map { CGPoint(x: $0.cgPointValue.x, y: 1360 - $0.cgPointValue.y) }
+            }
+            if spriteClips[id] != clips {
+                spriteRoots[id]?.removeFromParent(); node.removeFromParent()
+                var root: SKNode = node
+                for clip in clips.reversed() where clip.count == 4 {
+                    let path = CGMutablePath()
+                    path.move(to: clip[0]); path.addLine(to: clip[1]); path.addLine(to: clip[3]); path.addLine(to: clip[2]); path.closeSubpath()
+                    let mask = SKShapeNode(path: path); mask.fillColor = .white; mask.strokeColor = .clear; mask.lineWidth = 0; mask.isAntialiased = false
+                    let crop = SKCropNode(); crop.maskNode = mask; crop.addChild(root); root = crop
+                }
+                spriteRoots[id] = root; spriteClips[id] = clips; scene.addChild(root)
+            }
+            if let root = spriteRoots[id], root !== node { root.zPosition = z; node.zPosition = 0 }
+            else { node.zPosition = z }
         }
-        for id in Array(sprites.keys) where !live.contains(id) { sprites.removeValue(forKey: id)?.removeFromParent() }
+        for id in Array(sprites.keys) where !live.contains(id) {
+            spriteRoots.removeValue(forKey: id)?.removeFromParent(); sprites.removeValue(forKey: id); spriteClips.removeValue(forKey: id)
+        }
     }
     func draw(in view: MTKView) {
         onFrame?()

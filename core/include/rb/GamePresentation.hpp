@@ -12,6 +12,7 @@ struct PresentationSprite {
     float alpha=1;
     int32_t layer=40;
     uint32_t blend=0;
+    std::vector<std::array<MotionVector, 4>> clips;
 };
 struct PresentationFrame {
     std::vector<PresentationSprite> sprites;

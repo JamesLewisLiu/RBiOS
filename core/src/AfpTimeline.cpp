@@ -207,9 +207,12 @@ AfpPlacement AfpTimeline::placement(const AfpTag &tag) const {
                     throw Error("AFP event bytecode range");
                 auto effect =
                     script(Bytes(tag.payload.begin() + offset, tag.payload.begin() + end));
-                if (effect.stop || !effect.go.empty() || effect.reportedFrame < 0)
+                if (effect.stop || !effect.go.empty() ||
+                    (effect.reportedFrame < 0 && !effect.rectangularMask))
                     throw Error("unsupported AFP object event effect");
                 p.reportedFrame = effect.reportedFrame;
+                if (effect.rectangularMask)
+                    p.rectangularMask = effect.rectangularMask;
             }
         }
         if (r.position() > start + size)
@@ -237,16 +240,20 @@ AfpPlacement AfpTimeline::placement(const AfpTag &tag) const {
 }
 std::vector<AfpSpriteCommand> AfpTimeline::sampleExportedFrame(const AfpPackage &package,
                                                                const std::string &symbol,
-                                                               uint32_t frame) const {
+                                                               uint32_t frame,
+                                                               const AfpSampleOptions &options) const {
     auto ex = exports.find(symbol);
     if (ex == exports.end())
         throw Error("AFP export absent");
     std::vector<AfpSpriteCommand> out;
     std::set<uint16_t> active;
-    std::function<void(uint16_t, uint32_t, const AfpMatrix &, std::array<float, 4>, unsigned)>
+    std::function<void(uint16_t, uint32_t, const AfpMatrix &, std::array<float, 4>, unsigned,
+                       std::vector<AfpClipQuad>, std::string, std::string,
+                       std::optional<uint32_t>)>
         visit;
     visit = [&](uint16_t id, uint32_t tick, const AfpMatrix &parent, std::array<float, 4> color,
-                unsigned blend) {
+                unsigned blend, std::vector<AfpClipQuad> clips, std::string path,
+                std::string binding, std::optional<uint32_t> playback) {
         if (!active.insert(id).second)
             throw Error("AFP active symbol cycle");
         auto def = definitions_.find(id);
@@ -303,6 +310,8 @@ std::vector<AfpSpriteCommand> AfpTimeline::sampleExportedFrame(const AfpPackage 
                                 old.originX = p.originX;
                                 old.originY = p.originY;
                             }
+                            if (p.rectangularMask)
+                                old.rectangularMask = p.rectangularMask;
                         } else
                             display[p.depth] = {p, f};
                     } else if (cmd.kind == 0x80) {
@@ -320,6 +329,8 @@ std::vector<AfpSpriteCommand> AfpTimeline::sampleExportedFrame(const AfpPackage 
             for (const auto &[depth, obj] : display) {
                 (void)depth;
                 const auto &p = obj.p;
+                if (options.hiddenObjects.count(p.instanceName))
+                    continue;
                 for (float v : p.addition)
                     if (v != 0)
                         throw Error("unsupported AFP additive color");
@@ -330,13 +341,31 @@ std::vector<AfpSpriteCommand> AfpTimeline::sampleExportedFrame(const AfpPackage 
                 matrix.tx -= matrix.a * p.originX + matrix.c * p.originY;
                 matrix.ty -= matrix.b * p.originX + matrix.d * p.originY;
                 auto target = definitions_.find(p.source);
-                uint32_t age = tick - obj.born;
+                const auto elapsed = playback.value_or(tick);
+                if (elapsed < obj.born)
+                    throw Error("AFP playback precedes object creation");
+                uint32_t age = elapsed - obj.born;
+                const auto childPlayback = playback ? std::optional<uint32_t>(age) : std::nullopt;
                 if (target != definitions_.end() && target->second->sprite) {
                     auto count = target->second->sprite->frames.size();
                     if (count)
                         age %= count;
                 }
-                visit(p.source, age, combine(parent, matrix), c, p.blend ? p.blend : blend);
+                const auto childMatrix = combine(parent, matrix);
+                auto childClips = clips;
+                if (p.rectangularMask) {
+                    const auto &r = *p.rectangularMask;
+                    AfpClipQuad quad{{{r[0], r[3]}, {r[1], r[3]}, {r[0], r[2]}, {r[1], r[2]}}};
+                    for (auto &point : quad) {
+                        const float x = point[0], y = point[1];
+                        point = {childMatrix.a * x + childMatrix.c * y + childMatrix.tx,
+                                 childMatrix.b * x + childMatrix.d * y + childMatrix.ty};
+                    }
+                    childClips.push_back(quad);
+                }
+                visit(p.source, age, childMatrix, c, p.blend ? p.blend : blend,
+                      std::move(childClips), path + (p.instanceName.empty() ? "" : "/" + p.instanceName),
+                      p.instanceName.empty() ? binding : p.instanceName, childPlayback);
             }
         } else if (tag.kind == 0x84) {
             if (color[3] == 0) {
@@ -408,17 +437,25 @@ std::vector<AfpSpriteCommand> AfpTimeline::sampleExportedFrame(const AfpPackage 
                     if (!std::isfinite(value) || std::abs(value - expected) > 0.0000001f)
                         throw Error("unsupported AFP texture UV variation");
                 }
+            auto replacement = options.textureOverrides.find(binding);
+            if (replacement != options.textureOverrides.end()) {
+                const auto &target = package.texture(replacement->second);
+                if (target.uvRect[1] - target.uvRect[0] != textureInfo.uvRect[1] - textureInfo.uvRect[0] ||
+                    target.uvRect[3] - target.uvRect[2] != textureInfo.uvRect[3] - textureInfo.uvRect[2])
+                    throw Error("AFP replacement requires original texture geometry");
+                region = replacement->second;
+            }
             out.push_back({region,
                            parent,
                            {pts[0][0], pts[1][0], pts[0][1], pts[2][1]},
                            color,
                            {},
-                           uint8_t(blend)});
+                           uint8_t(blend), clips, path});
         } else
             throw Error("unsupported AFP symbol kind");
         active.erase(id);
     };
-    visit(ex->second, frame, AfpMatrix{}, {1, 1, 1, 1}, 0);
+    visit(ex->second, frame, AfpMatrix{}, {1, 1, 1, 1}, 0, {}, symbol, "", options.playbackTicks);
     return out;
 }
 AfpTimeline::ScriptEffect AfpTimeline::script(const Bytes &bytes) const {
@@ -456,12 +493,16 @@ AfpTimeline::ScriptEffect AfpTimeline::script(const Bytes &bytes) const {
             auto count = r.u8();
             for (unsigned i = 0; i < count; ++i) {
                 const auto type = r.u8();
-                if (type == 7)
+                if (type == 0)
+                    stack.push_back({Value::Integer, 0, {}});
+                else if (type == 7)
                     stack.push_back({Value::Integer, int32_t(r.be32()), {}});
                 else if (type == 12)
                     stack.push_back({Value::This, 0, {}});
                 else if (type == 0x13)
                     stack.push_back({Value::Constant, 0x300 + r.u8(), {}});
+                else if (type == 0x12)
+                    stack.push_back({Value::Constant, 0x200 + r.u8(), {}});
                 else if (type == 0x16)
                     stack.push_back({Value::Constant, 0x400 + r.u8(), {}});
                 else if (type == 0x27)
@@ -482,15 +523,17 @@ AfpTimeline::ScriptEffect AfpTimeline::script(const Bytes &bytes) const {
         } else if (op == 0x32) {
             const auto method = pop(), object = pop(), count = pop();
             if (method.kind != Value::Constant || object.kind != Value::Library ||
-                count.kind != Value::Integer || count.n < 1 || count.n > 2)
+                count.kind != Value::Integer || count.n < 1 || count.n > 5)
                 throw Error("unsupported AFP method call");
             const auto self = pop();
             if (self.kind != Value::This)
                 throw Error("unsupported AFP script target");
             if (method.n == 0x440 && count.n == 1)
                 effect.stop = true;
-            else if (method.n == 0x815 && count.n == 2) {
+            else if ((method.n == 0x815 || method.n == 0x442) && count.n == 2) {
                 auto target = pop();
+                if (target.kind == Value::Constant && target.n == 0x20e)
+                    target = {Value::Text, 0, "normal"};
                 if (target.kind != Value::Text)
                     throw Error("AFP goto label type");
                 effect.go = target.text;
@@ -499,6 +542,17 @@ AfpTimeline::ScriptEffect AfpTimeline::script(const Bytes &bytes) const {
                 if (frame.kind != Value::Integer)
                     throw Error("AFP frame callback type");
                 effect.reportedFrame = frame.n;
+            } else if (method.n == 0x833 && count.n == 5) {
+                std::array<float, 4> rect;
+                for (auto &value : rect) {
+                    auto argument = pop();
+                    if (argument.kind != Value::Integer)
+                        throw Error("AFP rectangle mask argument type");
+                    value = float(argument.n);
+                }
+                if (rect[0] >= rect[1] || rect[2] >= rect[3])
+                    throw Error("AFP rectangle mask range");
+                effect.rectangularMask = rect;
             } else
                 throw Error("unsupported AFP aeplib method: " + std::to_string(method.n));
             stack.push_back({Value::Undefined, 0, {}});

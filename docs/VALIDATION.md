@@ -1,6 +1,6 @@
 # Validation record
 
-Updated 2026-11-05. Host: Windows. Tools, caches and results stay inside the project. Isolated original-function fixtures, native integration audits, Apple builds and device play are distinct evidence.
+Updated 2026-11-05. Host: Windows; Apple builds run on macos-15. Original-resource analysis tools, caches and results stay under the original analysis directory. Isolated original-function fixtures, native integration audits, Apple builds and device play are distinct evidence.
 
 ## Host and original-instruction checks
 
@@ -8,8 +8,8 @@ Updated 2026-11-05. Host: Windows. Tools, caches and results stay inside the pro
 | --- | --- | --- |
 | Zig 0.13 C++17 | 22 test programs | Component assertions plus lifecycle scenarios; FMA contraction disabled |
 | Python Mach-O checks | 9 tests | Synthetic arm64, legacy/universal, truncation and wrong-platform cases; not Apple compilation |
-| English repository text | 173 UTF-8 files; no literal Han characters | Authored text only; original resource bytes and runtime metadata preserved |
-| Documentation and project structure | 70 local file links; Xcode project, plist, XML and JSON parsed | Structural checks; Apple compilation not run |
+| English repository text | No literal Han characters | Authored text only; original resource bytes and runtime metadata preserved |
+| Documentation and project structure | Local file links, Xcode project, plist, XML and JSON checked | Structural checks are separate from Apple compilation |
 | Baseline chart/timing | Seeds 36, hold 15, Switch 32, classification 560, timing 424 | Bounded isolated original instructions; fixed DLL hash |
 | MusicSheet original loader/prepare | 12 cases,169,932 fields | Three real charts x both sides x load/prepare; default option, explicit allocation fixture |
 | Full chart preparation | 2,315 charts,1,818,146 objects | Includes files not enabled in the selectable catalog |
@@ -34,8 +34,10 @@ Updated 2026-11-05. Host: Windows. Tools, caches and results stay inside the pro
 | AFP pool/clock | 1,031 host,862 descriptor/instruction,6 hidden-clock checks | 37 original descriptors and persistent reuse clocks |
 | AFP within-note cleanup | 68 checks,56 actual releases | Original component/actor/pool reset; cross-note order excluded |
 | Stage graphics | 56 checks | Original line/Top geometry and actual referenced images |
-| Presentation pipeline | 2,309 charts,522,082 display samples,22,085,142 draws | Every-tick movie control, stride 30 drawing,131 original bitmaps; explicit missing effect queues |
-| Targeted every-tick draw | 6k60_lastboss_w.ply:7,498 frames,561,003 draws | 70 Switch,34 Bigbang,58 hold objects; not GPU pixel verification |
+| Presentation pipeline before frame integration | 2,309 charts,522,082 display samples,22,085,142 draws | Every-tick movie control, stride 30 drawing,131 original bitmaps; explicit missing effect queues |
+| Stage-frame independent comparison | 908 samples,9,080 draws,6,356 masked draws,56 timer textures | Four difficulties, two child cycles and large elapsed times; upstream decoder reference, not original game render trace |
+| Frame-integrated chart sampling | Four charts,738 samples,36,542 draws,139 bitmaps | All four difficulties; full catalog drawing audit not repeated |
+| Targeted every-tick draw with frame | 6k60_lastboss_w.ply:7,498 frames,635,983 draws,195 bitmaps | 70 Switch,34 Bigbang,58 hold objects; not GPU pixel verification |
 
 New route/frame/sheet/input/order suites explicitly set x87 CW=0x027f. Older suites retain their documented fixture environment. The live original process control word has not been observed.
 
@@ -49,9 +51,10 @@ New route/frame/sheet/input/order suites explicitly set x87 CW=0x027f. Older sui
 | KBinXML reference | 52 synthetic trees | kbinxml2.2 CP932/UTF-8, names and typed values; not EA3 envelope |
 | Original network fields | 8 read cases,1 score-read structure,1,152 callback states | Explicit AVS allocation/string fixtures; not live protocol |
 | Resource snapshot | 4,834 files match | File set, sizes and SHA-256 since implementation-time snapshot |
-| Xcode structure | Project/plist/scheme parsed | 26 core sources; not xcodebuild |
-| Apple XCTest | Written, not run | 4 adapter,5 audio and 11 input-timeline tests |
-| GitHub Actions/device | Not run before user push | No IPA or device-success claim |
+| Character bitmap completeness | All 86 original packages contain one 768 x 1360 bitmap | First character's edge alpha and visible BGRA hash checked; cut edges are in original artwork |
+| Apple baseline at a1b1777 | Unsigned arm64 archive, minimum OS 14,21 simulator tests | [Actions 42032551303](https://github.com/JamesLewisLiu/RBiOS/actions/runs/42032551303); GPU corners/judgment lines at 50/75/100%, adapter/audio/input tests |
+| New nested-mask GPU regression | Written for 50/75/100% | Requires this revision's Actions run; synthetic marker intersection, not original scene pixel parity |
+| Device observation | User installation and stage-completion screenshots | Corrected playfield framing; new stage frame, timing and performance still need device validation |
 | Actual server | Not contacted | No probe, login or upload |
 
 The full decode audit processed 3,530,137,320 stereo audio frames and 1,128,995,636 texture bytes, one file at a time. These totals are coverage counters, not peak memory/performance measurements.
@@ -90,6 +93,8 @@ python -B tools/verify_afp.py
 python -B tools/verify_afp_pool.py
 python -B tools/verify_afp_release_order.py
 python -B tools/verify_afp_layer_state.py
+python -B tools/verify_stage_frame.py --help
+python -B tools/verify_character_resources.py --help
 python -B tools/audit_presentation.py ..
 python -B tools/verify_readers.py
 python -B tools/verify_property.py
@@ -99,4 +104,4 @@ python -B tools/hash_original.py --verify
 
 Detailed JSON/logs remain in ignored .build. The committable summary is [local-results.json](validation/local-results.json), without decoded media.
 
-Existing function suites preserve their fixture limits. New full-chart/scheduling/presentation checks are native deterministic audits, not execution of the entire original game. Host integration cannot establish Apple audio synchronization, original per-song replay scores, GPU pixels, device performance or real-server compatibility.
+Existing function suites preserve their fixture limits. New full-chart/scheduling/presentation checks are native deterministic audits, not execution of the entire original game. Host integration cannot establish Apple audio synchronization, original per-song replay scores, GPU pixels, device performance or real-server compatibility. Simulator rendering checks and user screenshots provide separate, narrower evidence; they do not establish original-engine pixel parity.

@@ -1,12 +1,20 @@
 #pragma once
 #include "AFP.hpp"
 #include <memory>
+#include <optional>
+#include <set>
 
 namespace rb {
 // AP2 format interpretation references DragonMinded/bemaniutils (Unlicense),
 // commit 1e66fcd780afb3088ce8e78c88615a143db492ee. See docs/AFP_TIMELINE.md.
 struct AfpMatrix {
     float a = 1, b = 0, c = 0, d = 1, tx = 0, ty = 0;
+};
+using AfpClipQuad = std::array<std::array<float, 2>, 4>;
+struct AfpSampleOptions {
+    std::set<std::string> hiddenObjects;
+    std::map<std::string, std::string> textureOverrides;
+    std::optional<uint32_t> playbackTicks;
 };
 struct AfpPlacement {
     uint32_t flags = 0;
@@ -17,6 +25,7 @@ struct AfpPlacement {
     std::array<float, 4> multiply{1, 1, 1, 1}, addition{};
     uint8_t blend = 0;
     int32_t reportedFrame = -1; // aeplib.aep_set_set_frame callback metadata
+    std::optional<std::array<float, 4>> rectangularMask;
 };
 struct AfpTag {
     uint16_t kind = 0, id = 0;
@@ -39,6 +48,8 @@ struct AfpSpriteCommand {
     std::array<float, 4> bounds{}; // left/right/top/bottom
     std::array<float, 4> multiply{1, 1, 1, 1}, addition{};
     uint8_t blend = 0;
+    std::vector<AfpClipQuad> clips;
+    std::string instancePath;
 };
 class AfpTimeline {
     Bytes decoded_;
@@ -51,6 +62,7 @@ class AfpTimeline {
         bool stop = false;
         std::string go;
         int32_t reportedFrame = -1;
+        std::optional<std::array<float, 4>> rectangularMask;
     };
     ScriptEffect script(const Bytes &) const;
 
@@ -66,7 +78,8 @@ class AfpTimeline {
     // This deliberately does not execute movie-global imports/initializers.
     // Unknown scripts, masks, non-rect geometry and unknown options throw Error.
     std::vector<AfpSpriteCommand> sampleExportedFrame(const AfpPackage &, const std::string &symbol,
-                                                      uint32_t frame) const;
+                                                      uint32_t frame,
+                                                      const AfpSampleOptions &options = {}) const;
     uint32_t resolveExportedLabelFrame(const std::string &symbol, const std::string &label,
                                        uint32_t elapsed) const;
     // Label API frame numbers are 1-based. Executes supported stop/goto actions.

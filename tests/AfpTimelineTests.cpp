@@ -1,4 +1,5 @@
 #include "rb/AfpTimeline.hpp"
+#include "rb/StageGraphic.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -18,8 +19,40 @@ int main(int argc, char **argv) {
             bad = true;
         }
         expect(bad);
+        // Synthetic AP2 container and placement trigger; no original game bytes.
+        Bytes minimal(93, 0);
+        auto put = [](Bytes &bytes, size_t at, uint32_t value, unsigned width) {
+            for (unsigned i = 0; i < width; ++i)
+                bytes.at(at + i) = uint8_t(value >> (8 * i));
+        };
+        put(minimal, 0, 0x41503208, 4); put(minimal, 4, 93, 4);
+        put(minimal, 8, 0x200, 2); put(minimal, 24, 0x42700000, 4);
+        put(minimal, 36, 64, 4); put(minimal, 48, 92, 4); put(minimal, 52, 1, 4);
+        put(minimal, 68, 1, 4); put(minimal, 76, 24, 4); put(minimal, 80, 24, 4);
+        put(minimal, 84, 28, 4); minimal[92] = 128;
+        AfpTimeline synthetic(minimal, Bytes{0, 0});
+        AfpTag maskTag; maskTag.kind = 0x7f; maskTag.payload.resize(28);
+        put(maskTag.payload, 0, 0x80, 4); put(maskTag.payload, 4, 1, 2);
+        put(maskTag.payload, 6, 1, 2); put(maskTag.payload, 8, 1, 4);
+        put(maskTag.payload, 12, 52, 4); put(maskTag.payload, 18, 1, 2);
+        put(maskTag.payload, 20, 1, 4); put(maskTag.payload, 26, 8, 2);
+        const Bytes maskScript{0xff, 0, 0x43, 7, 7, 0, 0, 0, 232, 0, 7, 0, 0, 3, 30,
+                               0, 12, 7, 0, 0, 0, 5, 0x13, 0x90, 0x0e, 0x43, 1, 0x27,
+                               0x33, 0x32, 0x0d, 0};
+        maskTag.payload.insert(maskTag.payload.end(), maskScript.begin(), maskScript.end());
+        const auto placement = synthetic.placement(maskTag);
+        expect(placement.rectangularMask && *placement.rectangularMask == std::array<float, 4>{0, 798, 0, 232});
+        maskTag.payload[36] = 0;
+        bad = false;
+        try { synthetic.placement(maskTag); } catch (const Error &) { bad = true; }
+        expect(bad);
+        maskTag.payload[36] = 232; maskTag.payload[56] = 0x34;
+        bad = false;
+        try { synthetic.placement(maskTag); } catch (const Error &) { bad = true; }
+        expect(bad);
         if (argc == 3 &&
-            (std::string(argv[1]) == "--sample" || std::string(argv[1]) == "--label")) {
+            (std::string(argv[1]) == "--sample" || std::string(argv[1]) == "--label" ||
+             std::string(argv[1]) == "--frame-sample")) {
             AfpPackage p(readFile(argv[2]));
             std::string name, label;
             uint32_t frame;
@@ -29,11 +62,19 @@ int main(int argc, char **argv) {
                 if (labeled)
                     std::cin >> label;
                 std::cin >> frame;
+                AfpSampleOptions options;
+                const bool stageFrame = std::string(argv[1]) == "--frame-sample";
+                if (stageFrame) {
+                    uint32_t elapsed;
+                    unsigned difficulty;
+                    std::cin >> elapsed >> difficulty;
+                    options = stageFrameOptions(difficulty, elapsed);
+                }
                 auto &ptr = movies[name];
                 if (!ptr)
                     ptr = std::make_unique<AfpTimeline>(p.movieBytes(name), p.bitStreamBytes(name));
                 auto d = labeled ? ptr->sampleExportedLabelFrame(p, name, label, frame)
-                                 : ptr->sampleExportedFrame(p, name, frame);
+                                 : ptr->sampleExportedFrame(p, name, frame, options);
                 std::cout << d.size() << std::setprecision(9);
                 for (const auto &v : d) {
                     std::cout << ' ' << v.texture;
@@ -45,6 +86,12 @@ int main(int argc, char **argv) {
                     for (auto x : v.multiply)
                         std::cout << ' ' << x;
                     std::cout << ' ' << unsigned(v.blend);
+                    if (stageFrame) {
+                        std::cout << ' ' << v.instancePath << ' ' << v.clips.size();
+                        for (const auto &clip : v.clips)
+                            for (const auto &point : clip)
+                                std::cout << ' ' << point[0] << ' ' << point[1];
+                    }
                 }
                 std::cout << '\n';
             }

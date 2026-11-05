@@ -130,12 +130,20 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
                 [quad addObject:[NSValue valueWithCGPoint:CGPointMake(p.x, p.y)]];
             for (float channel : sprite.multiply)
                 [multiply addObject:@(channel)];
+            NSMutableArray *clips = [NSMutableArray array];
+            for (const auto &clip : sprite.clips) {
+                NSMutableArray *points = [NSMutableArray array];
+                for (const auto &point : clip)
+                    [points addObject:[NSValue valueWithCGPoint:CGPointMake(point.x, point.y)]];
+                [clips addObject:points];
+            }
             const auto textureIdentity = sprite.package + ":" + sprite.texture;
             [draws addObject:@{
                 @"id" : @(sprite.identity.c_str()),
                 @"name" : @(textureIdentity.c_str()),
                 @"image" : [self imageInPackage:sprite.package texture:sprite.texture],
                 @"quad" : quad,
+                @"clips" : clips,
                 @"layer" : @(sprite.layer),
                 @"alpha" : @(sprite.alpha),
                 @"multiply" : multiply,

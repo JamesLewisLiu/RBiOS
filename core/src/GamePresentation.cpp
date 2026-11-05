@@ -123,13 +123,14 @@ struct GamePresentation::Impl {
                                {1, 1, 1, 1},
                                alpha,
                                layer,
-                               blend});
+                               blend, {}});
     }
     void movie(PresentationFrame &out, std::string id, const std::string &pack,
                const std::string &name, uint32_t frame, float x, float y, int32_t layer,
-               float angle, float sx, float sy, float alpha, float ax = .5f, float ay = .5f) {
+               float angle, float sx, float sy, float alpha, float ax = .5f, float ay = .5f,
+               const AfpSampleOptions &options = {}) {
         auto &tl = timeline(pack, name);
-        const auto commands = tl.sampleExportedFrame(package(pack), name, frame);
+        const auto commands = tl.sampleExportedFrame(package(pack), name, frame, options);
         const float ox = tl.location[0] + float(tl.location[1] - tl.location[0]) * ax;
         const float oy = tl.location[2] + float(tl.location[3] - tl.location[2]) * ay;
         const float c = std::cos(angle), s = std::sin(angle);
@@ -148,7 +149,15 @@ struct GamePresentation::Impl {
                 p = {x + c * dx - s * dy, y + s * dx + c * dy};
             }
             out.sprites.push_back({id + ":" + std::to_string(part++), pack, draw.texture, quad,
-                                   draw.multiply, alpha, layer, draw.blend});
+                                   draw.multiply, alpha, layer, draw.blend, {}});
+            for (const auto &clip : draw.clips) {
+                std::array<MotionVector, 4> transformed;
+                for (unsigned i = 0; i < 4; ++i) {
+                    const float dx = (clip[i][0] - ox) * sx, dy = (clip[i][1] - oy) * sy;
+                    transformed[i] = {x + c * dx - s * dy, y + s * dx + c * dy};
+                }
+                out.sprites.back().clips.push_back(transformed);
+            }
         }
     }
 };
@@ -244,6 +253,10 @@ PresentationFrame GamePresentation::frame(const SessionSnapshot &snapshot) {
         impl->sprite(out, "stage:" + std::to_string(part++), "gmparts", d.name, float(d.x),
                      float(d.y), d.layer, d.angle, d.scale, d.scale, d.alpha, d.anchorX, d.anchorY,
                      d.afpBlend);
+    const auto frameAge = uint32_t(snapshot.tick + 150);
+    impl->movie(out, "frame", "gmframe_00", "gmframe", std::min(frameAge, 3u), -15, 0, 22,
+                0, 1, 1, 1, 0, 0, stageFrameOptions(impl->difficulty, frameAge));
+    out.unresolved.push_back("Original frame account text and portrait bindings");
     for (const auto &note : snapshot.notes) {
         part = 0;
         const auto prefix = std::to_string(note.object) + ":";

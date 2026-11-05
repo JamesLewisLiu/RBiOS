@@ -22,7 +22,7 @@
       "note_graphic": 12,
       "touch_input": 5,
       "stage_score_initialization": 2,
-      "afp_timeline": 1,
+      "afp_timeline": 4,
       "stage_graphic": 12,
       "long_note_graphic": 8,
       "original_afp_movie_pool": 1031,
@@ -524,7 +524,8 @@
       "host draw-command/bitmap integration, not Apple pixels or device play",
       "draw commands sampled at stride; original playback updated every 60 Hz tick",
       "no external connection, profile storage or score upload"
-    ]
+    ],
+    "revision_scope": "Before stage-frame integration; retained historical full-catalog audit"
   },
   "game_presentation_every_tick": {
     "chart": "6k60_lastboss_w.ply",
@@ -539,7 +540,8 @@
       70
     ],
     "status": "passed",
-    "limits": "host draw descriptions and decoded bitmap access, not GPU pixel comparison"
+    "limits": "host draw descriptions and decoded bitmap access, not GPU pixel comparison",
+    "revision_scope": "Before stage-frame integration; retained historical targeted audit"
   },
   "afp": {
     "packages": 881,
@@ -570,11 +572,6 @@
     },
     "scope": "within-note long components before head; original full-array order; cross-note simultaneous release order needs separate validation"
   },
-  "apple_tests_written_not_run": {
-    "adapter": 4,
-    "audio_clock": 5,
-    "input_timeline": 11
-  },
   "persistence": {
     "scores": "none",
     "profiles": "none",
@@ -590,15 +587,78 @@
     "date": "2026-11-05",
     "repository_text": {
       "status": "passed",
-      "utf8_files": 173,
+      "utf8_files": 178,
       "literal_han_characters": 0
     },
-    "local_markdown_file_links": 70,
-    "xcode_project_structure": "parsed; Apple compilation not run",
+    "local_markdown_file_links": 77,
+    "xcode_project_structure": "parsed; baseline Apple archive passed separately",
     "host_test_programs_rerun": 22,
     "python_tests_rerun": 9,
     "kbinxml_reference_comparisons_rerun": 52,
-    "git_delivery": "local commit only; user-managed push",
-    "actions": "not dispatched; awaits user push"
+    "git_delivery": "Current main repository; fixes pushed for direct Actions monitoring",
+    "actions": "Baseline a1b1777 passed; frame changes await next Actions run"
+  },
+  "stage_frame": {
+    "status": "passed",
+    "reference_commit": "1e66fcd780afb3088ce8e78c88615a143db492ee",
+    "package_sha256": "1c5b13c59b8bebffafbd60c15c18654fc2553aa52f6029598470a13c30a6583f",
+    "movie_sha256": "b5b014aad3f1065de7a57b0716ebbd790406c057e18c521cade34f408547c404",
+    "difficulties": 4,
+    "samples": 908,
+    "commands": 9080,
+    "masked_commands": 6356,
+    "timer_textures": 56,
+    "scope": "normal frame with original named texture replacements, hidden unavailable account bindings, independent child clocks and original rectangular mask",
+    "limits": [
+      "No original Windows render trace",
+      "Account text and portrait bindings hidden and reported unresolved",
+      "New Apple nested-mask GPU checks pending next Actions run",
+      "Full-catalog drawing audit not repeated after frame integration"
+    ],
+    "targeted_presentation": {
+      "charts": 4,
+      "sampled_frames": 738,
+      "draws": 36542,
+      "bitmaps": 139,
+      "difficulties": 4
+    },
+    "every_tick_presentation": {
+      "chart": "6k60_lastboss_w.ply",
+      "frames": 7498,
+      "draws": 635983,
+      "bitmaps": 195
+    }
+  },
+  "character_bitmaps": {
+    "packages": 86,
+    "images_per_package": 1,
+    "visible_size": [
+      768,
+      1360
+    ],
+    "first_visible_bgra_sha256": "a62ace9543b663e8393ceaecd1497cc4fc57578f524ff6900d2c24862750e8e1",
+    "status": "passed",
+    "source_edge_clipping": true,
+    "decoded_media_written": false
+  },
+  "apple_baseline": {
+    "revision": "a1b1777",
+    "run": "https://github.com/JamesLewisLiu/RBiOS/actions/runs/42032551303",
+    "status": "passed",
+    "runner": "macos-15",
+    "xcode": "16.4",
+    "minimum_os": "14.0",
+    "architecture": "arm64",
+    "xctests": 21,
+    "scope": "Before stage-frame integration; GPU viewport/corners/judgment lines at 50/75/100%, adapter/audio/input tests"
+  },
+  "device_observation": {
+    "source": "user-provided installation report and stage-completion screenshots",
+    "confirmed": "Playfield framing after viewport correction; offline stage reaches results",
+    "unmeasured": [
+      "New stage-frame rendering",
+      "Touch/audio synchronization",
+      "Performance"
+    ]
   }
 }

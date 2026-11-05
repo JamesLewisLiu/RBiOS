@@ -37,12 +37,16 @@ final class GameSurfaceRenderTests: XCTestCase {
         let points = [CGPoint(x: 20, y: 20), CGPoint(x: 748, y: 20),
                       CGPoint(x: 20, y: 1340), CGPoint(x: 748, y: 1340),
                       CGPoint(x: 384, y: 680), CGPoint(x: 384, y: 204), CGPoint(x: 384, y: 1098)]
-        let draws: [[String: Any]] = points.enumerated().map { index, point in
+        var draws: [[String: Any]] = points.enumerated().map { index, point in
             let corners = [CGPoint(x: point.x - 16, y: point.y + 16), CGPoint(x: point.x + 16, y: point.y + 16),
                            CGPoint(x: point.x - 16, y: point.y - 16), CGPoint(x: point.x + 16, y: point.y - 16)]
             return ["id": "marker-\(index)", "name": "fixture-white", "image": image,
                     "quad": corners.map { NSValue(cgPoint: $0) }]
         }
+        let masks = [[CGPoint(x: 300, y: 416), CGPoint(x: 316, y: 416), CGPoint(x: 300, y: 384), CGPoint(x: 316, y: 384)],
+                     [CGPoint(x: 284, y: 408), CGPoint(x: 316, y: 408), CGPoint(x: 284, y: 392), CGPoint(x: 316, y: 392)]]
+        draws.append(["id": "masked-panel", "name": "fixture-white", "image": image, "x": 300, "y": 400,
+                      "clips": masks.map { $0.map { NSValue(cgPoint: $0) } }])
         surface.showSessionSprites(draws)
         var pixels = [UInt8](repeating: 0, count: 768 * 1360 * 4)
         var renderedFrames = 0
@@ -74,6 +78,9 @@ final class GameSurfaceRenderTests: XCTestCase {
             }
             let emptyOffset = (400 * 768 + 200) * 4
             XCTAssertLessThan(pixels[emptyOffset], 10, "Markers unexpectedly filled the playfield")
+            XCTAssertGreaterThan(pixels[(400 * 768 + 308) * 4], 240, "Mask removed the visible panel")
+            XCTAssertLessThan(pixels[(400 * 768 + 292) * 4], 10, "Panel escaped the horizontal mask")
+            XCTAssertLessThan(pixels[(412 * 768 + 308) * 4], 10, "Panel escaped the nested vertical mask")
         }
     }
 }

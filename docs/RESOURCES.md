@@ -38,7 +38,7 @@ The DLL is data, not executable code on iPad. Other builds need independent anal
 | Fonts | Original files retained | Game font layout not restored; shell uses system fonts |
 | AFP | AFP/BSI/GE2D exported symbols, matrices, images, labels and supported scripts | Full VM, original pages and dynamic bindings remain incomplete |
 
-Images and PCM are created only in memory. Audio is decoded in blocks for AVAudioPlayerNode. The stage uses its sample clock; timestamped touches share the monotonic host reference. Apple execution is unverified. AFP transforms original geometry corners for SpriteKit warps rather than exporting animation images.
+Images and PCM are created only in memory. Audio is decoded in blocks for AVAudioPlayerNode. The stage uses its sample clock; timestamped touches share the monotonic host reference. The Apple archive and simulator tests pass; device synchronization remains unmeasured. AFP transforms original geometry corners for SpriteKit warps rather than exporting animation images. Stage-frame rectangular masks use the same coordinate transform. All 86 large character cards are complete single bitmaps; source cut edges are documented in [CHARACTER_RESOURCES](CHARACTER_RESOURCES.md).
 
 rbinspect GAME_ROOT audits PLY/IFS/SD9/2dx without writing PNG, WAV or replacement packages. [VALIDATION](VALIDATION.md) records coverage.
 

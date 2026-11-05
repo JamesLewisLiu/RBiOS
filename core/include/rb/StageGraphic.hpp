@@ -1,6 +1,7 @@
 #pragma once
 #include "Motion.hpp"
 #include "NoteGraphic.hpp"
+#include "AfpTimeline.hpp"
 
 namespace rb {
 struct StageGraphicOptions {
@@ -14,4 +15,6 @@ struct StageGraphicOptions {
 // Original CStageJudgeLine (1014F640/1014F550) and CJudgeCircleChip
 // (1014FEC0/1014FC10), without their separate AFP effect movies.
 std::vector<SpriteDraw> drawStageJudgmentGraphics(const StageGraphicOptions &);
+AfpSampleOptions stageFrameOptions(unsigned difficulty, uint32_t elapsed, unsigned round = 0,
+                                    int localColor = 0);
 } // namespace rb

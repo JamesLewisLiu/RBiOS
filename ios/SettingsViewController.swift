@@ -22,7 +22,7 @@ final class SettingsViewController: UIViewController {
         endpoint.placeholder = "https://server.example/"; endpoint.borderStyle = .roundedRect; endpoint.autocapitalizationType = .none; endpoint.autocorrectionType = .no; endpoint.keyboardType = .URL
         endpoint.text = UserDefaults.standard.string(forKey: "remoteEndpoint"); endpoint.addTarget(self, action: #selector(endpointChanged), for: .editingDidEnd)
         let note = UILabel(); note.numberOfLines = 0; note.font = .preferredFont(forTextStyle: .footnote)
-        note.text = "Configuration only; no server connection is made. Embedded service support awaits server source. Preview an original texture below to check display scaling."
+        note.text = "Configuration only; no server connection is made. Embedded service support awaits server source. The preview fits the complete original bitmap; cut edges in the source artwork are preserved."
         let preview = UIButton(type: .system); preview.setTitle("Preview first original texture", for: .normal); preview.addTarget(self, action: #selector(loadPreview), for: .touchUpInside)
         let stack = UIStackView(arrangedSubviews: [scaleLabel, slider, reset, mode, endpoint, note, preview]); stack.axis = .vertical; stack.spacing = 12; stack.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stack)

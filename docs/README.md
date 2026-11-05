@@ -40,6 +40,8 @@
 | [LONG_NOTE_GRAPHIC](LONG_NOTE_GRAPHIC.md) | Hold and Switch geometry and assets |
 | [STAGE_LONG_PRESENTATION](STAGE_LONG_PRESENTATION.md) | Per-tick integration and catalog audits |
 | [STAGE_GRAPHIC](STAGE_GRAPHIC.md) | Judgment lines, Top chips and backgrounds |
+| [STAGE_FRAME](STAGE_FRAME.md) | Original panels, named texture bindings, masks and child clocks |
+| [CHARACTER_RESOURCES](CHARACTER_RESOURCES.md) | Complete portrait bitmaps and source artwork boundaries |
 | [GAME_PRESENTATION](GAME_PRESENTATION.md) | Core-to-Apple presentation boundary |
 
 Authored documentation, interface strings and comments are English. Original game metadata and assets retain their original encoding and contents.

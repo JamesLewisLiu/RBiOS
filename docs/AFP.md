@@ -37,4 +37,4 @@ These are archive and pixel-reading checks, not complete scene or movie executio
 
 ## Related work and limits
 
-[AFP_TIMELINE](AFP_TIMELINE.md) adds BSI, rectangular GE2D, nested display lists, supported Switch stop/goto labels and original bitmap draws, including independent Switch/Bigbang/background samples. Full VM behavior, arbitrary scripts, masks, nonrectangular geometry and original fonts remain unfinished. The local AFP library has no existing decompilation source. Static images are not used to claim completion of an original AFP page.
+[AFP_TIMELINE](AFP_TIMELINE.md) adds BSI, rectangular GE2D, nested display lists, supported Switch stop/goto labels and original bitmap draws, including independent Switch/Bigbang/background samples. [STAGE_FRAME](STAGE_FRAME.md) adds the original bottom-panel rectangular mask, named texture bindings and independent child clocks. Full VM behavior, arbitrary scripts, general masks, nonrectangular geometry and original fonts remain unfinished. The local AFP library has no existing decompilation source. Static images are not used to claim completion of an original AFP page.

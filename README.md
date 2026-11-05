@@ -2,7 +2,7 @@
 
 Native C++ restoration of REFLEC BEAT MBR:J:A:A:2019121100, with an iPad application targeting iPadOS 14.0 and later. The primary device is an M1 iPad Pro running iPadOS 14.6.
 
-**This is a partial migration.** Offline selection, stage execution, the CPU opponent and session-result code are connected. Windows core and original-resource audits pass. Apple compilation, device entry, timing and rendering have not yet been validated. Original page scenes, some effects, hit sounds and the complete online client remain unfinished.
+**This is a partial migration.** Offline selection, stage execution, the CPU opponent and session-result code are connected. Windows audits, the macos-15 arm64 archive and 21 Apple simulator tests pass. User-provided iPad screenshots show a completed stage after the viewport correction. Device timing and performance remain unmeasured. Original page scenes, some effects, hit sounds and the complete online client remain unfinished.
 
 ## Documentation
 
@@ -13,6 +13,7 @@ Start with the [documentation index](docs/README.md), [current status](docs/STAT
 - Original chart preprocessing, destination assignment, routes, note state transitions, touch association, CPU decisions, judgment, scoring and stage initialization.
 - A 60 Hz C++ stage with original pool ordering and lifecycle callbacks. The Apple adapter uses the audio sample clock and timestamped touch snapshots.
 - Runtime readers for original PLY, IFS/AVSLZ, textures, AFP/BSI/GE2D, SD9 and single-entry 2dx audio. Supported animation uses original images, matrices, labels and movie clocks.
+- Original stage-frame panels, difficulty/round labels, player/orb graphics and bottom-panel clipping, with independent child animation clocks. Account text and portrait bindings remain unfinished; see [STAGE_FRAME](docs/STAGE_FRAME.md).
 - Fixed 768 x 1360 rendering with centered safe-area fitting and a configurable 50%-100% display size. Touch coordinates use the inverse display transform.
 - Pause, cancellation and background handling, a CPU opponent, and results held only in the current session.
 - Offline protocol tests, injectable transports and dormant server configuration. No server is contacted automatically.
