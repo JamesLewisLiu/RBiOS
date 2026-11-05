@@ -1,4 +1,5 @@
 import XCTest
+import MetalKit
 @testable import RBiOS
 
 final class OfflineURLProtocol: URLProtocol {
@@ -22,6 +23,7 @@ final class AdapterTests: XCTestCase {
         for scale in [0.5, 0.75, 1.0] {
             surface.fraction = scale; surface.layoutIfNeeded()
             XCTAssertEqual(surface.configuredDrawableSize, CGSize(width: 768, height: 1360))
+            XCTAssertEqual(surface.configuredSceneSize, CGSize(width: 768, height: 1360))
             let expected = RBBridge.displayRect(in: surface.safeAreaLayoutGuide.layoutFrame, fraction: scale)
             XCTAssertEqual(surface.displayRect, expected)
         }

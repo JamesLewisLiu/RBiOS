@@ -3,10 +3,11 @@ import MetalKit
 import SpriteKit
 
 final class GameSurface: UIView, MTKViewDelegate {
+    static let logicalSize = CGSize(width: 768, height: 1360)
     private let metal: MTKView
     private let renderer: SKRenderer
     private let queue: MTLCommandQueue
-    private let scene = SKScene(size: CGSize(width: 768, height: 1360))
+    private let scene = SKScene(size: GameSurface.logicalSize)
     private var contacts: [ObjectIdentifier: (UInt64, CGPoint)] = [:]
     private var nextID: UInt64 = 1
     var onTouchSnapshot: (([(UInt64, CGPoint)]) -> Void)?
@@ -19,6 +20,7 @@ final class GameSurface: UIView, MTKViewDelegate {
     private(set) var displayRect = CGRect.zero
     private(set) var lastDrawableSize = CGSize.zero
     var configuredDrawableSize: CGSize { metal.drawableSize }
+    var configuredSceneSize: CGSize { scene.size }
 
     init?(device: MTLDevice? = MTLCreateSystemDefaultDevice()) {
         guard let device = device, let q = device.makeCommandQueue() else { return nil }
@@ -30,7 +32,9 @@ final class GameSurface: UIView, MTKViewDelegate {
         metal.preferredFramesPerSecond = 60; metal.colorPixelFormat = .bgra8Unorm
         metal.depthStencilPixelFormat = .depth32Float_stencil8
         metal.delegate = self; addSubview(metal)
-        scene.scaleMode = .resizeFill; scene.backgroundColor = .black; renderer.scene = scene
+        // Keep original game coordinates independent of Retina pixels and view points.
+        scene.scaleMode = .aspectFit; scene.anchorPoint = .zero
+        scene.backgroundColor = .black; renderer.scene = scene
         NotificationCenter.default.addObserver(self, selector: #selector(background), name: UIApplication.willResignActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(foreground), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
@@ -94,9 +98,13 @@ final class GameSurface: UIView, MTKViewDelegate {
         guard let drawable = view.currentDrawable, let pass = view.currentRenderPassDescriptor, let command = queue.makeCommandBuffer() else { return }
         lastDrawableSize = CGSize(width: drawable.texture.width, height: drawable.texture.height)
         guard lastDrawableSize == CGSize(width: 768, height: 1360) else { assertionFailure("render resolution changed"); return }
-        renderer.update(atTime: CACurrentMediaTime())
-        renderer.render(withViewport: CGRect(x: 0, y: 0, width: 768, height: 1360), commandBuffer: command, renderPassDescriptor: pass)
+        encodeScene(at: CACurrentMediaTime(), commandBuffer: command, renderPassDescriptor: pass)
         command.present(drawable); command.commit()
+    }
+    // Shared by the onscreen drawable and the offscreen GPU regression test.
+    func encodeScene(at time: TimeInterval, commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
+        renderer.update(atTime: time)
+        renderer.render(withViewport: CGRect(origin: .zero, size: Self.logicalSize), commandBuffer: commandBuffer, renderPassDescriptor: renderPassDescriptor)
     }
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
     @objc private func background() { resetTouches(); onSuspend?(); metal.isPaused = true }
