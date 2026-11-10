@@ -2,6 +2,7 @@
 #include "rb/OriginalAfpMoviePool.hpp"
 #include "rb/StageGraphic.hpp"
 #include "rb/StageScoreGraphic.hpp"
+#include "rb/StageLabelGraphic.hpp"
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -258,6 +259,11 @@ PresentationFrame GamePresentation::frame(const SessionSnapshot &snapshot) {
     impl->movie(out, "frame", "gmframe_00", "gmframe", std::min(frameAge, 3u), -15, 0, 22,
                 0, 1, 1, 1, 0, 0, stageFrameOptions(impl->difficulty, frameAge));
     out.unresolved.push_back("Original frame account text and portrait bindings");
+    part = 0;
+    for (const auto &d : drawStageLabels({}))
+        impl->sprite(out, "stage-label:" + std::to_string(part++), "gmparts", d.name, float(d.x),
+                     float(d.y), d.layer, d.angle, d.scale, d.scale, d.alpha, d.anchorX, d.anchorY,
+                     d.afpBlend);
     StageScoreGraphicOptions score;
     score.score = snapshot.battle.displayedScore;
     score.combo = {snapshot.players[0].combo, snapshot.players[1].combo};

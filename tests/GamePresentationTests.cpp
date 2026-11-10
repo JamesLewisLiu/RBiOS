@@ -75,6 +75,15 @@ int main(int argc, char **argv) {
                         presenter.advance(s);
                         if (s.tick == -150 || s.tick % int32_t(stride) == 0) {
                             auto frame = presenter.frame(s);
+                            unsigned labels = 0;
+                            for (const auto &draw : frame.sprites)
+                                if (draw.identity.rfind("stage-label:", 0) == 0) {
+                                    if (draw.package != "gmparts" || draw.layer != 76)
+                                        throw Error("original score label package/layer mismatch");
+                                    ++labels;
+                                }
+                            if (labels != 2)
+                                throw Error("original score labels missing from integrated frame");
                             ++frames;
                             draws += frame.sprites.size();
                             for (const auto &draw : frame.sprites) {

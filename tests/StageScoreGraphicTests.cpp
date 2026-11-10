@@ -30,8 +30,17 @@ int main(int argc, char **argv) {
     check(draws[10].name == "combo_small_as_yellow_09" && draws[10].x == 398);
     o.score[0] = 10000; draws = rb::drawStageScoreGraphics(o);
     check(draws[0].name == "score_as_small_red_00" && draws[3].name == "score_as_small_red_00");
+    check(draws[4].name == "score_as_small_blue_00"); // No fifth local score digit.
+    o.score = {{12345, 987654321}}; o.combo = {{12345, 2147483647}};
+    draws = rb::drawStageScoreGraphics(o);
+    check(draws.size() == 18); // Four digits per counter plus two combo words.
+    check(draws[0].name == "score_as_small_red_05" && draws[3].name == "score_as_small_red_02");
+    check(draws[4].name == "score_as_small_blue_01" && draws[7].name == "score_as_small_blue_04");
+    check(draws[8].name == "combo_big_as_white_05" && draws[11].name == "combo_big_as_white_02");
+    check(draws[12].name == "combo_big_white" && draws[13].name == "combo_small_as_yellow_07");
+    check(draws[16].name == "combo_small_as_yellow_03" && draws[17].name == "combo_small_yellow");
     o.localColor = 1; draws = rb::drawStageScoreGraphics(o);
-    check(draws[0].name == "score_as_small_blue_00");
+    check(draws[0].name == "score_as_small_blue_05");
     o.combo[0] = -1;
     bool rejected = false;
     try { rb::drawStageScoreGraphics(o); } catch (const std::invalid_argument &) { rejected = true; }

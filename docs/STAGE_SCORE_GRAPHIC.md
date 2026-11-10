@@ -22,7 +22,7 @@ The original draw routine queries named anchors from `gmbase_00`, using the name
 | Combo digits | `combo_as_you`: (384,737) | `combo_as_rival`: (384,300) |
 | Combo word | `combo_you`: (384,807) | `combo_rival`: (384,269) |
 
-Both sides use layer 75. Scores draw least-significant digits first, at pitch 44, with original half-width/half-height anchors (22,28). Starting X moves by 22 for two digits, 44 for three, and 66 for four or more. The loop emits at most five digits. Zero still emits one digit. The original four-or-more centering rule is retained even for five-digit values.
+Both sides use layer 75. Scores draw least-significant digits first, at pitch 44, with original half-width/half-height anchors (22,28). Starting X moves by 22 for two digits, 44 for three, and 66 for four or more. The loop emits at most four digits. Zero still emits one digit. Values above 9999 retain only the four least-significant digits. The loop counter starts at zero, increments after a draw, and exits when it reaches four.
 
 Combo pitches are 84 for the player and 28 for the rival. The initial X offset is half a pitch for two digits, one pitch for three, and one-and-a-half pitches for four or more. Digits use their original centers, and the word uses centered alignment. The local yellow/white branch reads whether the player's miss field is zero; the rival branch reads the original full-combo flag at player offset 104. Color and yellow-state inputs remain separate from the numeric layout.
 
@@ -32,7 +32,7 @@ Combo pitches are 84 for the player and 28 for the rival. The initial X offset i
 
 `tools/verify_stage_score_graphic.py` executes the original `0x10152600` machine instructions in the existing isolated Unicorn fixture. The original game process and networking are never started. AFP named-position lookup and renderer virtual methods are capture-only fixtures. The actual original arithmetic, branch decisions, digit pointer-table selection and loop limits execute unchanged.
 
-The recorded test passed **96 cases and 1,272 draws**. It covers values 0,1,9,10,99,100,999,1000,9999,10000,99999,100000; both player colors; and both yellow/white states for each side. Opponent score and combo values differ from the local values to detect accidental shared-state usage. Each captured texture name, position, anchor and layer is compared with the native `--batch` output.
+The expanded digit-boundary audit passed **120 cases and 1,704 draws**. It covers values 0,1,9,10,99,100,999,1000,9999,10000,99999,100000,12345,987654321,2147483647; both player colors; and both yellow/white states for each side. Opponent score and combo values differ from the local values to detect accidental shared-state usage. Each captured texture name, position, anchor and layer is compared with the native `--batch` output. The verifier also checks the original capture itself for exactly one through four digits per counter, so an accidental extra digit or truncated capture cannot be hidden by matching native output. This corrects an earlier documentation-only claim of five digits; the existing four-digit implementation was already correct.
 
 ```powershell
 python -B G:/vibe/RBiOS/tools/verify_stage_score_graphic.py --analysis-root E:/MBR-2019121100/IDA/RBiOS --executable E:/MBR-2019121100/IDA/RBiOS/.build/active/rbstagescoregraphic.exe --report E:/MBR-2019121100/IDA/RBiOS/.build/stage-score-graphic-parity.json

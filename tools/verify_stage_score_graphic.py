@@ -18,6 +18,8 @@ def main():
     parser.add_argument('--report', type=Path, required=True)
     args = parser.parse_args()
     args.report.resolve().relative_to((args.analysis_root / '.build').resolve())
+    if args.report.exists():
+        raise ValueError('Report already exists; select a new evidence report path')
     source = args.analysis_root / 'tools/original_score_fixture.py'
     spec = importlib.util.spec_from_file_location('original_score_fixture', source)
     f = importlib.util.module_from_spec(spec)
@@ -77,7 +79,8 @@ def main():
 
     u.hook_add(UC_HOOK_CODE, hook)
     cases, expected = [], []
-    boundaries = [0, 1, 9, 10, 99, 100, 999, 1000, 9999, 10000, 99999, 100000]
+    boundaries = [0, 1, 9, 10, 99, 100, 999, 1000, 9999, 10000, 99999, 100000,
+                  12345, 987654321, 2147483647]
     for number, color, yellow0, yellow1 in itertools.product(boundaries, range(2), range(2), range(2)):
         row = [number, boundaries[-1 - boundaries.index(number)], number, (number * 7) % 100001, yellow0, yellow1, color]
         u.mem_write(actor, bytes(0x200)); u.mem_write(opponent, bytes(0x200)); u.mem_write(f.player, bytes(132))
@@ -86,6 +89,13 @@ def main():
         f.put(f.player + 60, row[2]); f.put(opponent + 60, row[3]); f.put(f.player + 16, 0 if yellow0 else 1)
         u.mem_write(opponent + 104, bytes([yellow1]))
         captured.clear(); f.call(0x10152600, [actor])
+        # Assert the original capture's loop boundary independently of native output.
+        families = ['score_as_small_' + ('blue_' if color else 'red_'),
+                    'score_as_small_' + ('red_' if color else 'blue_'),
+                    'combo_big_as_', 'combo_small_as_']
+        for value, family in zip(row[:4], families):
+            count = sum(item['name'].startswith(family) for item in captured)
+            assert count == min(4, len(str(value))), (row, family, count)
         normalized = []
         for item in captured:
             if 'anchor' in item:
@@ -109,6 +119,7 @@ def main():
     assert cursor == len(output)
     report = {'status': 'passed', 'entry': '0x10152600', 'dll_sha256': f.digest,
               'cases': len(cases), 'draws': sum(map(len, expected)), 'named_positions': positions,
+              'original_maximum_digits_per_counter': 4,
               'limitations': ['Explicit AFP position fixture; original AFP VM not executed',
                               'Draw virtuals captured; no GPU or original engine pixel comparison',
                               'Ordinary score mode only; no life/course branch or animation smoothing']}

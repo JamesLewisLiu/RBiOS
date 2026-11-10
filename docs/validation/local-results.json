@@ -680,5 +680,30 @@
     ],
     "ipa_sha256": "bd9c5808eeaadf2af2825ee816b72f79683bb9adca857cc9eb4264e0d9794adc",
     "limits": "Synthetic marker GPU regression; original stage graphics need device installation testing"
+  },
+  "normal_score_labels": {
+    "date": "2026-11-10",
+    "original_labels": 4,
+    "colors": 2,
+    "layer": 76,
+    "resource_comparison": "passed",
+    "integration": {
+      "charts": 4,
+      "samples": 738,
+      "draws": 46765,
+      "bitmaps": 194
+    },
+    "digit_boundary_audit": {
+      "cases": 120,
+      "draws": 1704,
+      "digit_limit": 4
+    },
+    "host_test_programs": 25,
+    "decompiler": "Official Hex-Rays IDA MCP Server 20261028.0.3",
+    "limits": [
+      "Normal layout only",
+      "Animated transitions and course/life variants pending",
+      "New labels require device confirmation"
+    ]
   }
 }

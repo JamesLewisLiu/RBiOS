@@ -6,7 +6,7 @@ Updated 2026-11-10. Host: Windows; Apple builds run on macos-15. Original-resour
 
 | Check | Passed result | Scope / limit |
 | --- | --- | --- |
-| Zig 0.13 C++17 | 24 test programs | Component assertions plus lifecycle scenarios; FMA contraction disabled |
+| Zig 0.13 C++17 | 25 test programs | Component assertions plus lifecycle scenarios; FMA contraction disabled |
 | Python Mach-O checks | 9 tests | Synthetic arm64, legacy/universal, truncation and wrong-platform cases; not Apple compilation |
 | English repository text | No literal Han characters | Authored text only; original resource bytes and runtime metadata preserved |
 | Documentation and project structure | Local file links, Xcode project, plist, XML and JSON checked | Structural checks are separate from Apple compilation |
@@ -111,3 +111,7 @@ Existing function suites preserve their fixture limits. New full-chart/schedulin
 ## Score presentation restoration, 2026-11-10
 
 Original score/combo draw instructions passed 96 cases / 1,272 draws. The displayed-score update passed 2,400 original-instruction comparisons. Integrated chart rendering passed four difficulties with 738 samples / 45,289 draws / 192 original bitmaps. The Official IDA MCP Server freshly decompiled the related routines; see [STAGE_SCORE_GRAPHIC](STAGE_SCORE_GRAPHIC.md) and [SCORE_DISPLAY](SCORE_DISPLAY.md). These are bounded instruction and resource checks; the new presentation still requires device testing.
+
+## Normal score labels and digit boundary audit
+
+The original four score-label textures and AFP positions pass independent resource comparison. Integrated tests require both labels in every sampled frame: four difficulties, 738 samples, 46,765 draws and 194 bitmaps passed. The expanded original score/combo instruction comparison passes 120 cases / 1,704 draws, including large-value truncation. It confirms the existing four-digit cap and corrects the earlier documentation. See [STAGE_LABEL_GRAPHIC](STAGE_LABEL_GRAPHIC.md).
