@@ -62,3 +62,7 @@ Original 0x1009EAF0 calls EA3 symbol XE592acd000004. Full EA3 envelope, encoding
 rb6_player_read response 0x1009D090 and read_score response 0x1009C3F0 route pdata into profile structures. Complete field parsing, account lifecycle, writes, score submission and discovery are not implemented by the field-builder tests.
 
 All validation is offline. No server probe, login or score upload has occurred, and mock compatibility is not live compatibility.
+
+## Planned device server
+
+On 2026-11-10 the user supplied `10.9.0.19:18083` for later integration. Settings shows this address as a hint when no endpoint is saved. Existing endpoint settings take precedence. The transport scheme and service path still need confirmation during protocol integration. No discovery, probe, login or upload was performed, and the app remains offline by default.

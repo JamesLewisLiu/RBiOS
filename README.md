@@ -28,7 +28,7 @@ On a Mac with Xcode 16.4 installed:
 DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer bash tools/build_ios.sh
 ~~~
 
-The script archives an unsigned arm64 application, checks its minimum OS metadata and packages .build/RBiOS-unsigned.ipa only if validation succeeds. GitHub Actions uses macos-15; see [BUILD](docs/BUILD.md) for configuration and diagnostics. A local commit does not run Actions; the workflow starts after a GitHub push.
+The script archives an unsigned arm64 application, checks its minimum OS metadata and packages .build/RBiOS-unsigned.ipa and an identical .tipa for TrollStore sharing only if validation succeeds. GitHub Actions uses macos-15; see [BUILD](docs/BUILD.md) for configuration and diagnostics. A local commit does not run Actions; the workflow starts after a GitHub push.
 
 Portable tests require no game files, Apple SDK or server:
 

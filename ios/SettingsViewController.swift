@@ -19,7 +19,7 @@ final class SettingsViewController: UIViewController {
         let mode = UISegmentedControl(items: ["Offline", "Remote server", "Embedded service"])
         mode.selectedSegmentIndex = UserDefaults.standard.integer(forKey: "serverMode") == 1 ? 1 : 0
         mode.setEnabled(false, forSegmentAt: 2); mode.addTarget(self, action: #selector(serverChanged(_:)), for: .valueChanged)
-        endpoint.placeholder = "https://server.example/"; endpoint.borderStyle = .roundedRect; endpoint.autocapitalizationType = .none; endpoint.autocorrectionType = .no; endpoint.keyboardType = .URL
+        endpoint.placeholder = "10.9.0.19:18083"; endpoint.borderStyle = .roundedRect; endpoint.autocapitalizationType = .none; endpoint.autocorrectionType = .no; endpoint.keyboardType = .URL
         endpoint.text = UserDefaults.standard.string(forKey: "remoteEndpoint"); endpoint.addTarget(self, action: #selector(endpointChanged), for: .editingDidEnd)
         let note = UILabel(); note.numberOfLines = 0; note.font = .preferredFont(forTextStyle: .footnote)
         note.text = "Configuration only; no server connection is made. Embedded service support awaits server source. The preview fits the complete original bitmap; cut edges in the source artwork are preserved."

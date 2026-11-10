@@ -18,4 +18,7 @@ python3 -B tools/verify_ios_binary.py "$APP" | tee .build/minimum-os-check.txt
 mkdir -p .build/package/Payload
 ditto "$APP" .build/package/Payload/RBiOS.app
 (cd .build/package && ditto -c -k --keepParent Payload ../RBiOS-unsigned.ipa)
-echo 'Unsigned package built; device installation/signing and iPadOS 14.6 runtime checks remain separate.'
+cp .build/RBiOS-unsigned.ipa .build/RBiOS-unsigned.tipa
+cmp .build/RBiOS-unsigned.ipa .build/RBiOS-unsigned.tipa
+(cd .build && shasum -a 256 RBiOS-unsigned.ipa RBiOS-unsigned.tipa > package-sha256.txt)
+echo 'IPA and TrollStore TIPA built; device installation/signing and iPadOS 14.6 runtime checks remain separate.'

@@ -8,7 +8,7 @@ Native core and iPadOS build runs portable C++/Python checks, an unsigned device
 
 A local commit does not start Actions; pushing to the GitHub repository starts the workflow. The stage-frame implementation at `9cbc657` passed [Actions run 42052166298](https://github.com/JamesLewisLiu/RBiOS/actions/runs/42052166298): 22 portable C++ programs, 9 Python tests, the arm64 archive and all 21 simulator tests. The GPU regression includes nested clipping at 50%, 75% and 100% display size.
 
-The rbios-build-and-diagnostics artifact contains the IPA if packaging succeeded, Xcode/SDK versions, device log, minimum-OS report and XCTest results. A modern simulator does not validate iPadOS 14.6.
+The rbios-build-and-diagnostics artifact contains both IPA and TIPA packages plus package-sha256.txt if packaging succeeded, Xcode/SDK versions, device log, minimum-OS report and XCTest results. A modern simulator does not validate iPadOS 14.6.
 
 The workflow_dispatch input xcode_path, or repository variable XCODE_PATH, selects another installed Xcode application. Specify its .app path; the workflow adds /Contents/Developer.
 
@@ -20,7 +20,7 @@ Repository variable IOS_RUNNER_LABELS can select a self-hosted machine, for exam
 DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer bash tools/build_ios.sh
 ~~~
 
-The script regenerates the deterministic project, records tool versions and archives arm64 with the iphoneos SDK and signing disabled. It validates the application and embedded Mach-O files before creating .build/RBiOS-unsigned.ipa.
+The script regenerates the deterministic project, records tool versions and archives arm64 with the iphoneos SDK and signing disabled. It validates the application and embedded Mach-O files before creating .build/RBiOS-unsigned.ipa. It copies that validated archive byte-for-byte to .build/RBiOS-unsigned.tipa, compares the files and records both SHA-256 hashes.
 
 Info.plist and Mach-O minimum OS values must be at most 14.0. Wrong platforms, simulator code, non-arm64 slices and malformed binaries fail validation. The script never rewrites a binary minimum version to conceal incompatibility.
 
@@ -47,3 +47,7 @@ python -B tools/build_host.py
 The generator discovers all core sources, Apple adapters and XCTest files. CMake and the host build share the component test list. C++ uses -ffp-contract=off; ARM64 behavior still needs validation.
 
 Keep analysis dependencies in .tools, caches in .cache and outputs in .build. Do not commit game data, analysis binaries or decoded media. Swift/Objective-C++ and SDK diagnostics require an actual Apple build.
+
+## TrollStore sharing
+
+Download `RBiOS-unsigned.tipa` from the build artifact, extract it from the GitHub artifact ZIP, then share the TIPA file to TrollStore on the iPad. The IPA remains available for other installation workflows. Both files contain the same app and original-resource import behavior; TIPA is an additional file extension, not a resource conversion. TrollStore routes both extensions through the same [installation handler](https://github.com/opa334/TrollStore/blob/main/TrollStore/TSSceneDelegate.m).

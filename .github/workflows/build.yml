@@ -41,6 +41,8 @@ jobs:
           name: rbios-build-and-diagnostics
           path: |
             .build/RBiOS-unsigned.ipa
+            .build/RBiOS-unsigned.tipa
+            .build/package-sha256.txt
             .build/xcode-device.log
             .build/xcode-version.txt
             .build/iphoneos-sdk.txt

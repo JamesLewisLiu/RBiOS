@@ -30,3 +30,5 @@ Resources remain unchanged. Decoded pixels, PCM and AFP state live in memory. Se
 The frame implementation passed [Actions run 42052166298](https://github.com/JamesLewisLiu/RBiOS/actions/runs/42052166298). Its unsigned IPA was inspected as arm64 device code with minimum OS 14.0. The new frame still requires a device check. Character preview cut edges are present in the original source image; see [CHARACTER_RESOURCES](CHARACTER_RESOURCES.md).
 
 See [VALIDATION](VALIDATION.md), [STAGE_SESSION](STAGE_SESSION.md), [STAGE_LONG_PRESENTATION](STAGE_LONG_PRESENTATION.md) and [GAME_PRESENTATION](GAME_PRESENTATION.md) for evidence and boundaries.
+
+The user reported the score/combo build passed their device check on 2026-11-10. This is user-reported acceptance, not instrumented timing or pixel parity. Packaging now produces matching IPA/TIPA files for TrollStore sharing. The supplied future server is recorded in [PROTOCOL](PROTOCOL.md); live integration remains pending.
