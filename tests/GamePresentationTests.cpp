@@ -63,6 +63,16 @@ int main(int argc, char **argv) {
                         if (o.attributes[3] >= 0 && o.attributes[3] < int(kinds.size()))
                             ++kinds[unsigned(o.attributes[3])];
                     GamePresentation presenter(root.string(), d);
+                    const auto prepared = presenter.prepareStageBitmaps();
+                    if (prepared.empty()) throw Error("stage preparation did not load original textures");
+                    uint64_t preparedBytes = 0;
+                    for (const auto &entry : prepared) {
+                        const auto &image = presenter.bitmap(entry.first, entry.second);
+                        preparedBytes += image.bgra.size();
+                    }
+                    if (preparedBytes > 128 * 1024 * 1024)
+                        throw Error("prepared original textures exceed memory budget");
+                    std::cout << "Prepared " << prepared.size() << " original textures / " << preparedBytes << " decoded bytes\n";
                     SessionOptions options;
                     options.inputModes = {1, 3};
                     options.initialBattle = initializeStageScore(

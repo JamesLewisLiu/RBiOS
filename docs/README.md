@@ -46,5 +46,7 @@
 | [STAGE_FRAME](STAGE_FRAME.md) | Original panels, named texture bindings, masks and child clocks |
 | [CHARACTER_RESOURCES](CHARACTER_RESOURCES.md) | Complete portrait bitmaps and source artwork boundaries |
 | [GAME_PRESENTATION](GAME_PRESENTATION.md) | Core-to-Apple presentation boundary |
+| [STAGE_SOUND](STAGE_SOUND.md) | Original local hit sounds and pending audio recovery |
+| [RENDER_TIMING](RENDER_TIMING.md) | Up to 120 Hz presentation over 60 Hz logic |
 
 Authored documentation, interface strings and comments are English. Original game metadata and assets retain their original encoding and contents.

@@ -20,6 +20,11 @@ NS_ASSUME_NONNULL_BEGIN
                           difficulty:(NSUInteger)difficulty error:(NSError **)error
     NS_SWIFT_NAME(init(root:songIndex:difficulty:));
 @property(nonatomic, readonly) NSURL *audioURL;
+@property(nonatomic, readonly) NSDictionary<NSString *, NSURL *> *soundResources;
+- (nullable NSDictionary<NSString *, UIImage *> *)prepareStageImagesWithError:(NSError **)error;
+- (BOOL)advanceLogicToTick:(int32_t)tick touches:(NSArray<NSValue *> *)touches error:(NSError **)error
+    NS_SWIFT_NAME(advanceLogic(to:touches:));
+- (nullable NSDictionary<NSString *, id> *)presentationWithError:(NSError **)error;
 - (nullable NSDictionary<NSString *, id> *)advanceToTick:(int32_t)tick
                                                 touches:(NSArray<NSValue *> *)touches
                                                   error:(NSError **)error

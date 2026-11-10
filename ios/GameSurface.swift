@@ -17,6 +17,8 @@ final class GameSurface: UIView, MTKViewDelegate {
     private var sprites: [String: SKSpriteNode] = [:]
     private var spriteRoots: [String: SKNode] = [:]
     private var spriteClips: [String: [[CGPoint]]] = [:]
+    private var interpolation = StageFrameInterpolation()
+    private var warpPositions: [String: [SIMD2<Float>]] = [:]
     private var textures: [String: SKTexture] = [:]
     var fraction: Double = 1 { didSet { resetTouches(); setNeedsLayout() } }
     private(set) var displayRect = CGRect.zero
@@ -31,7 +33,7 @@ final class GameSurface: UIView, MTKViewDelegate {
         isMultipleTouchEnabled = true; backgroundColor = .black
         metal.isUserInteractionEnabled = false
         metal.autoResizeDrawable = false; metal.drawableSize = CGSize(width: 768, height: 1360)
-        metal.preferredFramesPerSecond = 60; metal.colorPixelFormat = .bgra8Unorm
+        metal.preferredFramesPerSecond = min(120, UIScreen.main.maximumFramesPerSecond); metal.colorPixelFormat = .bgra8Unorm
         metal.depthStencilPixelFormat = .depth32Float_stencil8
         metal.delegate = self; addSubview(metal)
         // Keep original game coordinates independent of Retina pixels and view points.
@@ -41,14 +43,34 @@ final class GameSurface: UIView, MTKViewDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(foreground), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    var requestedFramesPerSecond: Int { metal.preferredFramesPerSecond }
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        metal.preferredFramesPerSecond = min(120, (window?.screen ?? UIScreen.main).maximumFramesPerSecond)
+        resetPresentationInterpolation()
+    }
+    func prepareSessionTextures(_ images: [String: UIImage], completion: @escaping () -> Void) {
+        var pending: [SKTexture] = []
+        for (name, image) in images where textures[name] == nil {
+            let texture = SKTexture(image: image); texture.filteringMode = .linear
+            textures[name] = texture; pending.append(texture)
+        }
+        guard !pending.isEmpty else { completion(); return }
+        SKTexture.preload(pending) { DispatchQueue.main.async(execute: completion) }
+    }
+    func submitSessionSprites(_ draws: [[String: Any]], tick: Int32, hostTime: TimeInterval = CACurrentMediaTime()) {
+        interpolation.submit(draws, tick: tick, at: hostTime)
+    }
+    func resetPresentationInterpolation() { interpolation.reset() }
     override func layoutSubviews() {
         super.layoutSubviews()
         let rect = RBBridge.displayRect(in: safeAreaLayoutGuide.layoutFrame, fraction: fraction)
-        if rect != displayRect { resetTouches(); displayRect = rect }
+        if rect != displayRect { resetTouches(); resetPresentationInterpolation(); displayRect = rect }
         metal.frame = rect
         metal.drawableSize = CGSize(width: 768, height: 1360)
     }
     func showOriginalImage(_ image: UIImage) {
+        resetPresentationInterpolation(); warpPositions.removeAll()
         sprites.removeAll(); spriteRoots.removeAll(); spriteClips.removeAll(); textures.removeAll()
         scene.removeAllChildren()
         let texture = SKTexture(image: image); texture.filteringMode = .linear
@@ -67,7 +89,7 @@ final class GameSurface: UIView, MTKViewDelegate {
             if let cached = textures[name] { texture = cached }
             else { texture = SKTexture(image: image); texture.filteringMode = .linear; textures[name] = texture }
             let node: SKSpriteNode
-            if let cached = sprites[id] { node = cached; node.texture = texture; node.size = texture.size() }
+            if let cached = sprites[id] { node = cached; if node.texture !== texture { node.texture = texture } }
             else { node = SKSpriteNode(texture: texture); sprites[id] = node; spriteRoots[id] = node; scene.addChild(node) }
             func number(_ key: String, _ fallback: Double = 0) -> CGFloat { CGFloat((draw[key] as? NSNumber)?.doubleValue ?? fallback) }
             node.position = CGPoint(x: number("x"), y: 1360 - number("y"))
@@ -90,9 +112,12 @@ final class GameSurface: UIView, MTKViewDelegate {
                 node.position = CGPoint(x: (left + right) / 2, y: (bottom + top) / 2); node.size = CGSize(width: width, height: height)
                 let positions = corners.map { SIMD2<Float>(Float(($0.x - left) / width), Float(($0.y - bottom) / height)) }
                 let sourcePositions: [SIMD2<Float>] = [SIMD2(0, 0), SIMD2(1, 0), SIMD2(0, 1), SIMD2(1, 1)]
-                node.warpGeometry = SKWarpGeometryGrid(columns: 1, rows: 1, sourcePositions: sourcePositions, destinationPositions: positions)
+                if warpPositions[id] != positions {
+                    node.warpGeometry = positions == sourcePositions ? nil : SKWarpGeometryGrid(columns: 1, rows: 1, sourcePositions: sourcePositions, destinationPositions: positions)
+                    warpPositions[id] = positions
+                }
                 node.subdivisionLevels = 0
-            } else { node.isHidden = false; node.warpGeometry = nil }
+            } else { node.isHidden = false; node.warpGeometry = nil; warpPositions.removeValue(forKey: id); node.size = texture.size() }
             let clips = (draw["clips"] as? [[NSValue]] ?? []).map { clip in
                 clip.map { CGPoint(x: $0.cgPointValue.x, y: 1360 - $0.cgPointValue.y) }
             }
@@ -111,7 +136,7 @@ final class GameSurface: UIView, MTKViewDelegate {
             else { node.zPosition = z }
         }
         for id in Array(sprites.keys) where !live.contains(id) {
-            spriteRoots.removeValue(forKey: id)?.removeFromParent(); sprites.removeValue(forKey: id); spriteClips.removeValue(forKey: id)
+            spriteRoots.removeValue(forKey: id)?.removeFromParent(); sprites.removeValue(forKey: id); spriteClips.removeValue(forKey: id); warpPositions.removeValue(forKey: id)
         }
     }
     func draw(in view: MTKView) {
@@ -124,11 +149,12 @@ final class GameSurface: UIView, MTKViewDelegate {
     }
     // Shared by the onscreen drawable and the offscreen GPU regression test.
     func encodeScene(at time: TimeInterval, commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
+        if let draws = interpolation.frame(at: time) { showSessionSprites(draws) }
         renderer.update(atTime: time)
         renderer.render(withViewport: CGRect(origin: .zero, size: Self.logicalSize), commandBuffer: commandBuffer, renderPassDescriptor: renderPassDescriptor)
     }
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
-    @objc private func background() { resetTouches(); onSuspend?(); metal.isPaused = true }
+    @objc private func background() { resetPresentationInterpolation(); resetTouches(); onSuspend?(); metal.isPaused = true }
     @objc private func foreground() { metal.isPaused = false }
     private func sendTouches(at time: TimeInterval) {
         let points = Array(contacts.values).sorted { $0.0 < $1.0 }

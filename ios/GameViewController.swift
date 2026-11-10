@@ -8,6 +8,7 @@ final class GameViewController: UIViewController {
     private let difficulty: Int
     private let worker = DispatchQueue(label: "rb.stage", qos: .userInteractive)
     private let audio = AudioStream()
+    private let sound = StageSoundPlayer()
     private var session: RBGameSession?
     private var surface: GameSurface?
     private let hud = UILabel()
@@ -15,6 +16,7 @@ final class GameViewController: UIViewController {
     private let inputTimeline = StageInputTimeline()
     private var loading = true, paused = true, busy = false, finished = false, startingAudio = false
     private var generation = UUID()
+    private var resumeGeneration = UUID()
     private var tick: Int32 = -150
     private var preRollFrames: Double = 0
     private var previousFrameTime: CFTimeInterval?
@@ -42,6 +44,8 @@ final class GameViewController: UIViewController {
         }
         display.onFrame = { [weak self] in self?.frame() }
         display.onSuspend = { [weak self] in self?.freeze() }
+        sound.onError = { [weak self] error in self?.fail(error.localizedDescription) }
+        sound.onInterruption = { [weak self] in self?.freeze() }
         audio.onError = { [weak self] error in self?.fail(error.localizedDescription) }
         audio.onInterruption = { [weak self] in self?.freeze() }
         audio.onComplete = { [weak self] in
@@ -59,9 +63,9 @@ final class GameViewController: UIViewController {
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated); freeze()
-        if isMovingFromParent { generation = UUID(); audio.stop(); worker.async { [weak self] in self?.session = nil } }
+        if isMovingFromParent { generation = UUID(); audio.stop(); sound.stop(); worker.async { [weak self] in self?.session = nil } }
     }
-    deinit { audio.stop() }
+    deinit { audio.stop(); sound.stop() }
     private func prepare() {
         guard let index = (song["index"] as? NSNumber)?.uintValue else { fail("The original song index is missing."); return }
         let token = generation
@@ -69,16 +73,27 @@ final class GameViewController: UIViewController {
             guard let self = self else { return }
             do {
                 let prepared = try RBGameSession(root: self.root, songIndex: index, difficulty: UInt(self.difficulty))
+                let images = try prepared.prepareStageImages()
                 let first = try prepared.advance(to: -150, touches: [])
                 self.session = prepared
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self, self.generation == token else { return }
                     self.apply(first)
-                    self.audio.open(prepared.audioURL, autoplay: false) { [weak self] result in
-                        guard let self = self, self.generation == token else { return }
-                        switch result {
-                        case .success: self.loading = false; self.paused = self.view.window == nil; self.previousFrameTime = nil
-                        case .failure(let error): self.fail(error.localizedDescription)
+                    self.surface?.prepareSessionTextures(images) { [weak self] in
+                        guard let self = self, self.generation == token, !self.finished else { return }
+                        self.audio.open(prepared.audioURL, autoplay: false) { [weak self] result in
+                            guard let self = self, self.generation == token, !self.finished else { return }
+                            switch result {
+                            case .success:
+                                self.sound.prepare(prepared.soundResources) { [weak self] result in
+                                    guard let self = self, self.generation == token, !self.finished else { return }
+                                    switch result {
+                                    case .success: self.loading = false; self.resumeEffects()
+                                    case .failure(let error): self.fail(error.localizedDescription)
+                                    }
+                                }
+                            case .failure(let error): self.fail(error.localizedDescription)
+                            }
                         }
                     }
                 }
@@ -119,26 +134,33 @@ final class GameViewController: UIViewController {
         worker.async { [weak self] in
             guard let self = self, let session = self.session else { return }
             do {
-                var snapshot: [String: Any] = [:]
-                for segment in segments { snapshot = try session.advance(to: segment.targetTick, touches: segment.points) }
+                for segment in segments { try session.advanceLogic(to: segment.targetTick, touches: segment.points) }
+                let snapshot = try session.presentation()
                 DispatchQueue.main.async { [weak self] in guard let self = self, self.generation == token else { return }; self.busy = false; self.apply(snapshot) }
             } catch { DispatchQueue.main.async { [weak self] in guard let self = self, self.generation == token else { return }; self.busy = false; self.fail(error.localizedDescription) } }
         }
     }
     private func apply(_ snapshot: [String: Any]) {
         tick = (snapshot["tick"] as? NSNumber)?.int32Value ?? tick
-        surface?.showSessionSprites(snapshot["sprites"] as? [[String: Any]] ?? [])
+        let sprites = snapshot["sprites"] as? [[String: Any]] ?? []
+        if paused || loading { surface?.resetPresentationInterpolation(); surface?.showSessionSprites(sprites) }
+        else { surface?.submitSessionSprites(sprites, tick: tick) }
+        if !paused && !finished {
+            let requests = (snapshot["sounds"] as? [String] ?? []).map { StageSoundRequest(name: $0) }
+            sound.play(requests)
+        }
         let players = snapshot["players"] as? [[String: Any]] ?? []
-        if let local = players.first {
+        if let local = players.first, loading || tick % 6 == 0 || (snapshot["complete"] as? NSNumber)?.boolValue == true {
             let score = (local["score"] as? NSNumber)?.intValue ?? 0
             let combo = (local["combo"] as? NSNumber)?.intValue ?? 0
             let rate = (local["rate"] as? NSNumber)?.doubleValue ?? 0
             hud.text = String(format: "SCORE %d    COMBO %d    AR %.2f%%", score, combo, rate * 100)
         }
         let pending = snapshot["pendingPresentation"] as? [String] ?? []
-        detail.text = pending.isEmpty ? "Offline - session-only scores" : "Presentation still to restore: " + pending.sorted().prefix(3).joined(separator: ", ")
+        let status = pending.isEmpty ? "Offline - session-only scores" : "Presentation still to restore: " + pending.sorted().prefix(3).joined(separator: ", ")
+        if detail.text != status { detail.text = status }
         if (snapshot["complete"] as? NSNumber)?.boolValue == true && !finished {
-            finished = true; freeze(); audio.stop()
+            finished = true; freeze(); audio.stop(); sound.stop()
             let message = players.enumerated().map { side, p in
                 let score = (p["score"] as? NSNumber)?.intValue ?? 0, combo = (p["maxCombo"] as? NSNumber)?.intValue ?? 0
                 let rate = (p["finalRate"] as? NSNumber)?.doubleValue ?? 0
@@ -149,8 +171,25 @@ final class GameViewController: UIViewController {
             present(alert, animated: true)
         }
     }
+    private func resumeEffects() {
+        let token = generation, resumeToken = resumeGeneration
+        surface?.resetPresentationInterpolation()
+        sound.resume { [weak self] result in
+            guard let self = self, self.generation == token, !self.finished else { return }
+            guard self.resumeGeneration == resumeToken else { self.sound.pause(); self.audio.pause(); return }
+            switch result {
+            case .success:
+                self.paused = self.view.window == nil || UIApplication.shared.applicationState != .active
+                if self.paused { self.sound.pause(); self.audio.pause() }
+                self.previousFrameTime = nil
+            case .failure(let error): self.fail(error.localizedDescription)
+            }
+        }
+    }
     private func freeze() {
+        resumeGeneration = UUID()
         paused = true; previousFrameTime = nil; surface?.resetTouches(); inputTimeline.cancel()
+        surface?.resetPresentationInterpolation(); sound.pause()
         audio.pause(); worker.async { [weak self] in self?.session?.cancelTouches() }
     }
     @objc private func pauseMenu() {
@@ -159,15 +198,20 @@ final class GameViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Resume", style: .default) { [weak self] _ in
             guard let self = self else { return }; self.previousFrameTime = nil
             if self.audioStarted && !self.audioEnded {
-                self.audio.resume { [weak self] result in guard let self = self else { return }; switch result { case .success: self.paused = false; case .failure(let error): self.fail(error.localizedDescription) } }
-            } else { self.paused = false }
+                let resumeToken = self.resumeGeneration
+                self.audio.resume { [weak self] result in
+                    guard let self = self, !self.finished else { return }
+                    guard self.resumeGeneration == resumeToken else { self.audio.pause(); return }
+                    switch result { case .success: self.resumeEffects(); case .failure(let error): self.fail(error.localizedDescription) }
+                }
+            } else { self.resumeEffects() }
         })
         alert.addAction(UIAlertAction(title: "Display size", style: .default) { [weak self] _ in guard let self = self else { return }; self.navigationController?.pushViewController(SettingsViewController(root: self.root), animated: true) })
         alert.addAction(UIAlertAction(title: "Exit stage", style: .destructive) { [weak self] _ in self?.navigationController?.popViewController(animated: true) })
         present(alert, animated: true)
     }
     private func fail(_ text: String) {
-        guard !finished else { return }; loading = false; finished = true; freeze(); audio.stop(); hud.text = "Stage stopped"
+        guard !finished else { return }; loading = false; finished = true; freeze(); audio.stop(); sound.stop(); hud.text = "Stage stopped"
         let alert = UIAlertController(title: "Unable to continue", message: text, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Back to songs", style: .default) { [weak self] _ in self?.navigationController?.popViewController(animated: true) })
         if presentedViewController == nil { present(alert, animated: true) }

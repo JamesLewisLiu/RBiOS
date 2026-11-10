@@ -47,3 +47,5 @@ The prepared Windows toolchain can run python -B tools/build_host.py. Optional a
 This repository does not include the original DLL, game files or decompilation output. Keep the original data directory and modules/reflecbeat.dll together, then select their parent directory in the app. Files retain their original names, formats and bytes. Images and audio are decoded only in memory; no converted PNG, WAV or replacement resource bundle is generated.
 
 The DLL is read as version-bound data and is not executed on iPad. This application contains no x86 execution layer or JIT. See [RESOURCES](docs/RESOURCES.md) for the accepted layout and exact source hash.
+
+Local default hit effects now use the original SD9 bank. Capable displays are requested at up to 120 Hz, with interpolated note rendering over the original 60 Hz simulation. See [sound recovery](docs/STAGE_SOUND.md) and [display timing](docs/RENDER_TIMING.md) for implemented behavior, remaining gaps and device checks.

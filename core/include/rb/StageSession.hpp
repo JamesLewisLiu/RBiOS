@@ -14,6 +14,7 @@ struct SessionMovieBinding {
 struct SessionJudgmentEvent {
     int32_t tick = 0, object = 0, side = 0, kind = 0, relativeTick = 0;
     SubmittedJudgment result;
+    int32_t switchDirection = -1; // recovered note +372 after evaluation
 };
 struct SessionOptions {
     BattleScore initialBattle; // supply recovered original 101554C0 configuration

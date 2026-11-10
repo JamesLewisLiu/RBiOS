@@ -30,6 +30,7 @@ class GamePresentation {
     void noteReleased(int32_t);
     void advance(const SessionSnapshot&); // once per original logic tick
     PresentationFrame frame(const SessionSnapshot&);
+    std::vector<std::pair<std::string, std::string>> prepareStageBitmaps();
     const AfpBitmap &bitmap(const std::string &package,const std::string &texture);
 };
 // Original sprite alignment and non-uniform scale, shared by Apple and host tests.

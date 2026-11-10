@@ -480,7 +480,7 @@ struct StageSession::Impl {
                 if (options.onJudgment)
                     options.onJudgment({tick, int32_t(s->object), s->note.side,
                                         s->note.judgment.kind, s->note.judgment.relativeTick,
-                                        *result});
+                                        *result, s->note.judgment.switchDirection});
                 launchLinks(*s, *result);
                 dirty = dirty || score.dirty;
                 score.dirty = false;

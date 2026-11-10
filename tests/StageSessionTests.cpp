@@ -2,6 +2,7 @@
 #include "rb/StageOrder.hpp"
 #include "rb/StageScoreInitialization.hpp"
 #include "rb/StageSession.hpp"
+#include "rb/StageSound.hpp"
 #include <filesystem>
 #include <iostream>
 #include <numeric>
@@ -67,6 +68,21 @@ int main(int argc, char **argv) {
                     x.battle.score[side] != y.battle.score[side])
                     throw Error("stage step size changed deterministic score");
             }
+            StageSoundQueue sounds;
+            std::vector<int32_t> played;
+            unsigned observedTicks = 0;
+            options.onJudgment = [&](const SessionJudgmentEvent &event) {
+                sounds.submit(event.tick, event.side, event.kind, event.result.original.grade,
+                              event.result.original.reason, event.switchDirection);
+            };
+            options.onPresentationFrame = [&](const SessionSnapshot &snapshot) {
+                ++observedTicks;
+                for (const auto &cue : sounds.drain(snapshot.tick)) played.push_back(cue.id);
+            };
+            StageSession audible(sheet, options);
+            audible.advanceToTick(1000, {});
+            if (observedTicks != 1151 || played != std::vector<int32_t>{10192})
+                throw Error("batched stage callbacks lost local sound or synthesized CPU sound");
             bool rejected = false;
             try {
                 b.advanceToTick(999, {});

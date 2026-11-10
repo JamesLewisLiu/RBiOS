@@ -14,11 +14,11 @@ Updated 2026-11-10. Implementation, host validation, Apple builds and device pla
 | AFP clocks and pools | Switch/Bigbang/background sampling, 37 descriptors, hidden playback, reuse and within-note cleanup order | Full exhaustion behavior and independent cross-note same-tick cleanup comparison |
 | iPad stage entry | Import -> difficulty -> C++ play/CPU -> session results; Apple build passed and user screenshot shows stage completion | Instrumented original-game/device replay comparison |
 | Display and input | Fixed 768 x 1360, 50%-100% scaling, inverse mapping, timestamps and pause/background cancellation; simulator corner/line/nested-mask checks passed | Physical multi-touch measurements and original scene pixel parity |
-| Audio | Block decoding, sample clock, EOF/interruption/resume connected | Original hit sounds and device synchronization |
+| Audio | Music sample clock plus original default local hit/switch/bigbang one-shots, four-lane suppression and predecoded SD9 buffers | Rival stream, continuous hold loop, menu audio and device synchronization |
 | Scores and profiles | Memory only; no database, history or upload queue | Persistence intentionally excluded |
 | Networking | Original fields, selected callbacks, protocol/transport isolation, mocks and configuration | Full EA3 envelope, discovery/card/profile/score flow and URLSession bridge |
 | Embedded server | Lifecycle interface; unavailable without source | Server-source migration |
-| Windows build | Zig C++17 and 22 test programs passed | Not ARM64/iOS compilation evidence |
+| Windows build | Zig C++17 and 26 test programs passed | Not ARM64/iOS compilation evidence |
 | macos-15 Actions | Xcode 16.4 arm64 archive, minimum-OS validation and 21 simulator tests passed at 9cbc657, including nested masks | Simulator tests do not establish iPadOS 14.6 hardware behavior |
 | M1 / iPadOS 14.6 | User reports installation and provides stage-completion screenshots with corrected field framing | New frame graphics, performance, synchronization and instrumented touch testing |
 | Live server | No probe, login or upload | Offline tests do not establish live compatibility |
@@ -32,3 +32,5 @@ The frame implementation passed [Actions run 42052166298](https://github.com/Jam
 See [VALIDATION](VALIDATION.md), [STAGE_SESSION](STAGE_SESSION.md), [STAGE_LONG_PRESENTATION](STAGE_LONG_PRESENTATION.md) and [GAME_PRESENTATION](GAME_PRESENTATION.md) for evidence and boundaries.
 
 The user reported the score/combo build passed their device check on 2026-11-10. This is user-reported acceptance, not instrumented timing or pixel parity. Packaging now produces matching IPA/TIPA files for TrollStore sharing. The supplied future server is recorded in [PROTOCOL](PROTOCOL.md); live integration remains pending.
+
+The sound/rendering increment restores the original local sound selector (16,800 original-instruction comparisons), asks capable displays for up to 120 Hz, and interpolates stable note positions while retaining 60 Hz simulation. Supported stage textures and effects are prepared before play; intermediate input segments no longer construct redundant render snapshots. These changes target source-level first-use and allocation overhead, not a measured guarantee of frame rate. Interpolation adds up to 16.7 ms of visual delay. New device audio, frame-time and alignment checks remain pending. See [STAGE_SOUND](STAGE_SOUND.md) and [RENDER_TIMING](RENDER_TIMING.md).

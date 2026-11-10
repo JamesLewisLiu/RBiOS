@@ -107,6 +107,10 @@ final class AudioStream {
                 self.engine.prepare()
                 for _ in 0..<3 { try self.fill(self.generation) }
                 guard self.outstanding > 0 else { throw AudioStreamError.emptyAudio }
+                // Activate the shared session during preparation so early hit effects can
+                // play in the stage pre-roll while the music clock remains at zero.
+                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                try AVAudioSession.sharedInstance().setActive(true)
                 self.state = .prepared
                 if autoplay { try self.start() }
                 let duration = self.clock!.duration

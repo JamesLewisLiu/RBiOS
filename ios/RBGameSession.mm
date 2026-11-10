@@ -1,6 +1,7 @@
 #import "RBBridge.h"
 #include "rb/GamePresentation.hpp"
 #include "rb/StageScoreInitialization.hpp"
+#include "rb/StageSound.hpp"
 #include <cstdlib>
 #include <memory>
 
@@ -35,7 +36,10 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
 @implementation RBGameSession {
     // Reverse destruction order keeps the callback target alive until session destruction.
     std::unique_ptr<rb::GamePresentation> _presentation;
+    std::unique_ptr<rb::StageSoundQueue> _soundQueue;
     std::unique_ptr<rb::StageSession> _session;
+    NSMutableArray<NSString *> *_soundEvents;
+    NSDictionary<NSString *, NSURL *> *_soundResources;
     NSMutableDictionary<NSString *, UIImage *> *_images;
     NSURL *_audioURL;
     unsigned _difficulty;
@@ -73,7 +77,19 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
         _presentation =
             std::make_unique<rb::GamePresentation>(filePath(root), unsigned(difficulty));
         auto *presentation = _presentation.get();
+        _soundQueue = std::make_unique<rb::StageSoundQueue>();
+        auto *soundQueue = _soundQueue.get();
+        _soundEvents = [NSMutableArray array];
+        auto soundEvents = _soundEvents;
+        NSMutableDictionary *resources = [NSMutableDictionary dictionary];
+        for (const auto &cue : rb::stageSoundResources())
+            resources[@(cue.key)] = [root URLByAppendingPathComponent:@(cue.path)];
+        _soundResources = [resources copy];
         rb::SessionOptions options;
+        options.onJudgment = [soundQueue](const rb::SessionJudgmentEvent &event) {
+            soundQueue->submit(event.tick, event.side, event.kind, event.result.original.grade,
+                               event.result.original.reason, event.switchDirection);
+        };
         options.randomSeed = sessionSeed;
         options.initialBattle = rb::initializeStageScore(
             rb::StageScoreInitialization::offline(sheet, song.levels[difficulty]));
@@ -82,8 +98,10 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
             presentation->noteCreated(id, bindings);
         };
         options.onNoteReleased = [presentation](int32_t id) { presentation->noteReleased(id); };
-        options.onPresentationFrame = [presentation](const auto &snapshot) {
+        options.onPresentationFrame = [presentation, soundQueue, soundEvents](const auto &snapshot) {
             presentation->advance(snapshot);
+            for (const auto &cue : soundQueue->drain(snapshot.tick))
+                [soundEvents addObject:@(cue.key)];
         };
         _session = std::make_unique<rb::StageSession>(std::move(sheet), options);
         _audioURL =
@@ -96,6 +114,7 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
     }
     return self;
 }
+- (NSDictionary<NSString *, NSURL *> *)soundResources { return _soundResources; }
 - (NSURL *)audioURL {
     return _audioURL;
 }
@@ -109,9 +128,20 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
     _images[key] = image;
     return image;
 }
+- (NSDictionary<NSString *, UIImage *> *)prepareStageImagesWithError:(NSError **)error {
+    try {
+        for (const auto &entry : _presentation->prepareStageBitmaps())
+            [self imageInPackage:entry.first texture:entry.second];
+        return [_images copy];
+    } catch (const std::exception &e) { sessionError(error, e); return nil; }
+}
 - (NSDictionary<NSString *, id> *)advanceToTick:(int32_t)tick
                                         touches:(NSArray<NSValue *> *)touches
                                           error:(NSError **)error {
+    if (![self advanceLogicToTick:tick touches:touches error:error]) return nil;
+    return [self presentationWithError:error];
+}
+- (BOOL)advanceLogicToTick:(int32_t)tick touches:(NSArray<NSValue *> *)touches error:(NSError **)error {
     try {
         std::vector<rb::TouchPoint> points;
         for (NSValue *value in touches) {
@@ -119,6 +149,11 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
             points.push_back({int32_t(p.x), int32_t(p.y)});
         }
         _session->advanceToTick(tick, points);
+        return YES;
+    } catch (const std::exception &e) { sessionError(error, e); return NO; }
+}
+- (NSDictionary<NSString *, id> *)presentationWithError:(NSError **)error {
+    try {
         auto snapshot = _session->snapshot();
         if (!snapshot.failure.empty())
             throw rb::Error(snapshot.failure);
@@ -170,7 +205,10 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
                 @"clearType" : @(p.clearType(_difficulty, 0))
             }];
         }
+        NSArray *sounds = [_soundEvents copy];
+        [_soundEvents removeAllObjects];
         return @{
+            @"sounds" : sounds,
             @"tick" : @(snapshot.tick),
             @"complete" : @(snapshot.complete),
             @"created" : @(snapshot.created),
@@ -185,6 +223,7 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
     }
 }
 - (void)cancelTouches {
+    [_soundEvents removeAllObjects];
     if (_session)
         _session->cancelTouches();
 }

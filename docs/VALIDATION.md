@@ -115,3 +115,9 @@ Original score/combo draw instructions passed 96 cases / 1,272 draws. The displa
 ## Normal score labels and digit boundary audit
 
 The original four score-label textures and AFP positions pass independent resource comparison. Integrated tests require both labels in every sampled frame: four difficulties, 738 samples, 46,765 draws and 194 bitmaps passed. The expanded original score/combo instruction comparison passes 120 cases / 1,704 draws, including large-value truncation. It confirms the existing four-digit cap and corrects the earlier documentation. See [STAGE_LABEL_GRAPHIC](STAGE_LABEL_GRAPHIC.md).
+
+## Local effects and display cadence, 2026-11-10
+
+All 26 native test programs and nine Python tests pass locally. The sound selector passes 16,800 comparisons against the original instruction chain and seven SD9 identity checks. All seven effects decode through the native Wave reader to 1,440,928 bytes of non-silent, stereo PCM in memory. The batched StageSession test confirms one local sound, no synthesized rival sound and 1,151 per-tick drains.
+
+Four original chart difficulties pass with 738 sampled frames, 46,765 draws and 194 used bitmaps. Before each run, all 671 textures from the five supported stage packages decode successfully (47,597,024 BGRA bytes). No source assets are converted or replaced. Apple build/simulator results are tracked separately through Actions; actual device audible output, frame times and latency are unverified for this increment.

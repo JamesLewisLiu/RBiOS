@@ -316,6 +316,22 @@ PresentationFrame GamePresentation::frame(const SessionSnapshot &snapshot) {
     out.unresolved.insert(out.unresolved.end(), impl->unresolved.begin(), impl->unresolved.end());
     return out;
 }
+std::vector<std::pair<std::string, std::string>> GamePresentation::prepareStageBitmaps() {
+    std::vector<std::pair<std::string, std::string>> result;
+    uint64_t bytes = 0;
+    for (const auto &name : {"gmobject", "gmparts", "gmframe_00", "gmbg_00", "gmexp_effect"}) {
+        const auto &textures = impl->package(name).textures();
+        for (const auto &texture : textures) {
+            const auto &r = texture.uvRect;
+            bytes += uint64_t(r[1] - r[0]) * uint64_t(r[3] - r[2]) * 4;
+            if (bytes > 128 * 1024 * 1024)
+                throw Error("stage texture preparation exceeds memory budget");
+            impl->bitmap(name, texture.nameCP932);
+            result.emplace_back(name, texture.nameCP932);
+        }
+    }
+    return result;
+}
 const AfpBitmap &GamePresentation::bitmap(const std::string &package, const std::string &texture) {
     return impl->bitmap(package, texture);
 }
