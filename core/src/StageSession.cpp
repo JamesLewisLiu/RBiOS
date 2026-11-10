@@ -1,4 +1,5 @@
 #include "rb/StageSession.hpp"
+#include "rb/ScoreDisplay.hpp"
 #include "rb/NoteFrame.hpp"
 #include "rb/Route.hpp"
 #include "rb/StageOrder.hpp"
@@ -539,6 +540,7 @@ void StageSession::advanceToTick(int32_t target, const std::vector<TouchPoint> &
     try {
         while (impl->tick < target && !impl->complete) {
             impl->step(points);
+            updateScoreDisplay(impl->battle); // Original manager update follows actor updates.
             if (impl->options.onPresentationFrame)
                 impl->options.onPresentationFrame(snapshot());
         }

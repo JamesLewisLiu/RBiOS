@@ -39,6 +39,8 @@
 | [NOTE_GRAPHIC](NOTE_GRAPHIC.md) | Head styles and draw parameters |
 | [LONG_NOTE_GRAPHIC](LONG_NOTE_GRAPHIC.md) | Hold and Switch geometry and assets |
 | [STAGE_LONG_PRESENTATION](STAGE_LONG_PRESENTATION.md) | Per-tick integration and catalog audits |
+| [STAGE_SCORE_GRAPHIC](STAGE_SCORE_GRAPHIC.md) | Original score/combo glyphs and instruction comparison |
+| [SCORE_DISPLAY](SCORE_DISPLAY.md) | Original per-tick score counter update |
 | [STAGE_GRAPHIC](STAGE_GRAPHIC.md) | Judgment lines, Top chips and backgrounds |
 | [STAGE_FRAME](STAGE_FRAME.md) | Original panels, named texture bindings, masks and child clocks |
 | [CHARACTER_RESOURCES](CHARACTER_RESOURCES.md) | Complete portrait bitmaps and source artwork boundaries |

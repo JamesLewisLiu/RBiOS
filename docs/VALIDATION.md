@@ -1,12 +1,12 @@
 # Validation record
 
-Updated 2026-11-05. Host: Windows; Apple builds run on macos-15. Original-resource analysis tools, caches and results stay under the original analysis directory. Isolated original-function fixtures, native integration audits, Apple builds and device play are distinct evidence.
+Updated 2026-11-10. Host: Windows; Apple builds run on macos-15. Original-resource analysis tools, caches and results stay under the original analysis directory. Isolated original-function fixtures, native integration audits, Apple builds and device play are distinct evidence.
 
 ## Host and original-instruction checks
 
 | Check | Passed result | Scope / limit |
 | --- | --- | --- |
-| Zig 0.13 C++17 | 22 test programs | Component assertions plus lifecycle scenarios; FMA contraction disabled |
+| Zig 0.13 C++17 | 24 test programs | Component assertions plus lifecycle scenarios; FMA contraction disabled |
 | Python Mach-O checks | 9 tests | Synthetic arm64, legacy/universal, truncation and wrong-platform cases; not Apple compilation |
 | English repository text | No literal Han characters | Authored text only; original resource bytes and runtime metadata preserved |
 | Documentation and project structure | Local file links, Xcode project, plist, XML and JSON checked | Structural checks are separate from Apple compilation |
@@ -107,3 +107,7 @@ python -B tools/hash_original.py --verify
 Detailed JSON/logs remain in ignored .build. The committable summary is [local-results.json](validation/local-results.json), without decoded media.
 
 Existing function suites preserve their fixture limits. New full-chart/scheduling/presentation checks are native deterministic audits, not execution of the entire original game. Host integration cannot establish Apple audio synchronization, original per-song replay scores, GPU pixels, device performance or real-server compatibility. Simulator rendering checks and user screenshots provide separate, narrower evidence; they do not establish original-engine pixel parity.
+
+## Score presentation restoration, 2026-11-10
+
+Original score/combo draw instructions passed 96 cases / 1,272 draws. The displayed-score update passed 2,400 original-instruction comparisons. Integrated chart rendering passed four difficulties with 738 samples / 45,289 draws / 192 original bitmaps. The Official IDA MCP Server freshly decompiled the related routines; see [STAGE_SCORE_GRAPHIC](STAGE_SCORE_GRAPHIC.md) and [SCORE_DISPLAY](SCORE_DISPLAY.md). These are bounded instruction and resource checks; the new presentation still requires device testing.

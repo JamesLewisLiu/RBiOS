@@ -1,6 +1,6 @@
 # Current status
 
-Updated 2026-11-05. Implementation, host validation, Apple builds and device play are separate claims. The complete migration is not finished.
+Updated 2026-11-10. Implementation, host validation, Apple builds and device play are separate claims. The complete migration is not finished.
 
 | Area | Implemented or verified | Remaining work |
 | --- | --- | --- |
@@ -9,6 +9,7 @@ Updated 2026-11-05. Implementation, host validation, Apple builds and device pla
 | Complete-song audit | 2,309 catalog charts x both sides x auto/no-contact: 9,236 runs passed | No full original-game trace or device replay comparison |
 | Hold/Switch presentation | Original geometry, textures, hidden movie bindings and updates; 62,563,101 audited ticks | JR/collection effect consumers and device presentation |
 | Original resources | Direct PLY/IFS/texture/SD9/2dx reading and memory decoding; all 86 large character cards verified complete | Original fonts, full AFP VM, dynamic page bindings, general masks and nonrectangular geometry |
+| Score display | Original score/combo glyphs, normal-layout anchors and per-tick score counter; 96 drawing and 2,400 counter cases match original instructions | Animated layout, separate score labels and device validation |
 | Stage frame | Original top/bottom panels, round/difficulty labels, player/orb graphics, rectangular mask and independent child clocks; 908 reference samples passed | Account text/portrait bindings, score widgets and device verification of the newly restored frame |
 | AFP clocks and pools | Switch/Bigbang/background sampling, 37 descriptors, hidden playback, reuse and within-note cleanup order | Full exhaustion behavior and independent cross-note same-tick cleanup comparison |
 | iPad stage entry | Import -> difficulty -> C++ play/CPU -> session results; Apple build passed and user screenshot shows stage completion | Instrumented original-game/device replay comparison |
