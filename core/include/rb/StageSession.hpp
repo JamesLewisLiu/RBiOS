@@ -41,6 +41,7 @@ struct SessionNoteView {
 struct SessionSnapshot {
     int32_t tick = -150, created = 0, processed = 0;
     bool complete = false;
+    bool holdSoundActive = false;
     std::array<PlayerScore, 2> players;
     BattleScore battle;
     std::vector<SessionNoteView> notes;

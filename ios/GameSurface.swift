@@ -20,6 +20,7 @@ final class GameSurface: UIView, MTKViewDelegate {
     private var interpolation = StageFrameInterpolation()
     private var warpPositions: [String: [SIMD2<Float>]] = [:]
     private var textures: [String: SKTexture] = [:]
+    private var staticPresentation = false
     var fraction: Double = 1 { didSet { resetTouches(); setNeedsLayout() } }
     private(set) var displayRect = CGRect.zero
     private(set) var lastDrawableSize = CGSize.zero
@@ -62,12 +63,19 @@ final class GameSurface: UIView, MTKViewDelegate {
         interpolation.submit(draws, tick: tick, at: hostTime)
     }
     func resetPresentationInterpolation() { interpolation.reset() }
+    // Recovered menu pages currently use static original display-list frames.
+    // Draw those pages only when changed, avoiding an idle 120 Hz render loop.
+    func useStaticPresentation() {
+        staticPresentation = true; metal.isPaused = true; metal.enableSetNeedsDisplay = true
+        metal.setNeedsDisplay()
+    }
     override func layoutSubviews() {
         super.layoutSubviews()
         let rect = RBBridge.displayRect(in: safeAreaLayoutGuide.layoutFrame, fraction: fraction)
         if rect != displayRect { resetTouches(); resetPresentationInterpolation(); displayRect = rect }
         metal.frame = rect
         metal.drawableSize = CGSize(width: 768, height: 1360)
+        if staticPresentation { metal.setNeedsDisplay() }
     }
     func showOriginalImage(_ image: UIImage) {
         resetPresentationInterpolation(); warpPositions.removeAll()
@@ -80,14 +88,19 @@ final class GameSurface: UIView, MTKViewDelegate {
         node.position = CGPoint(x: 384, y: 680); scene.addChild(node)
     }
     func showSessionSprites(_ draws: [[String: Any]]) {
+        if staticPresentation { metal.setNeedsDisplay() }
         var live = Set<String>()
         for (drawIndex, draw) in draws.enumerated() {
-            guard let id = draw["id"] as? String, let name = draw["name"] as? String,
-                  let image = draw["image"] as? UIImage else { continue }
+            guard let id = draw["id"] as? String, let name = draw["name"] as? String else { continue }
+            let solid = draw["solidColor"] as? [NSNumber]
+            let texture: SKTexture?
+            if let solid = solid, solid.count == 4 { texture = nil }
+            else if let cached = textures[name] { texture = cached }
+            else if let image = draw["image"] as? UIImage {
+                let loaded = SKTexture(image: image); loaded.filteringMode = .linear
+                textures[name] = loaded; texture = loaded
+            } else { continue }
             live.insert(id)
-            let texture: SKTexture
-            if let cached = textures[name] { texture = cached }
-            else { texture = SKTexture(image: image); texture.filteringMode = .linear; textures[name] = texture }
             let node: SKSpriteNode
             if let cached = sprites[id] { node = cached; if node.texture !== texture { node.texture = texture } }
             else { node = SKSpriteNode(texture: texture); sprites[id] = node; spriteRoots[id] = node; scene.addChild(node) }
@@ -98,9 +111,14 @@ final class GameSurface: UIView, MTKViewDelegate {
             node.setScale(number("scale", 1)); node.alpha = number("alpha", 1)
             node.anchorPoint = CGPoint(x: number("anchorX", 0.5), y: 1 - number("anchorY", 0.5))
             node.blendMode = number("blend") == 8 ? .add : .alpha
-            if let color = draw["multiply"] as? [NSNumber], color.count == 4 {
-                node.color = UIColor(red: CGFloat(color[0].doubleValue), green: CGFloat(color[1].doubleValue), blue: CGFloat(color[2].doubleValue), alpha: 1)
-                node.colorBlendFactor = 1; node.alpha *= CGFloat(color[3].doubleValue)
+            let multiply = draw["multiply"] as? [NSNumber] ?? []
+            if let solid = solid, solid.count == 4 {
+                let color = (0..<4).map { CGFloat(solid[$0].doubleValue) * (multiply.count == 4 ? CGFloat(multiply[$0].doubleValue) : 1) }
+                node.color = UIColor(red: color[0], green: color[1], blue: color[2], alpha: 1)
+                node.colorBlendFactor = 1; node.alpha *= color[3]
+            } else if multiply.count == 4 {
+                node.color = UIColor(red: CGFloat(multiply[0].doubleValue), green: CGFloat(multiply[1].doubleValue), blue: CGFloat(multiply[2].doubleValue), alpha: 1)
+                node.colorBlendFactor = 1; node.alpha *= CGFloat(multiply[3].doubleValue)
             } else { node.colorBlendFactor = 0 }
             if let quad = draw["quad"] as? [NSValue], quad.count == 4 {
                 let corners = quad.map { CGPoint(x: $0.cgPointValue.x, y: 1360 - $0.cgPointValue.y) }
@@ -117,7 +135,7 @@ final class GameSurface: UIView, MTKViewDelegate {
                     warpPositions[id] = positions
                 }
                 node.subdivisionLevels = 0
-            } else { node.isHidden = false; node.warpGeometry = nil; warpPositions.removeValue(forKey: id); node.size = texture.size() }
+            } else { node.isHidden = false; node.warpGeometry = nil; warpPositions.removeValue(forKey: id); node.size = texture?.size() ?? .zero }
             let clips = (draw["clips"] as? [[NSValue]] ?? []).map { clip in
                 clip.map { CGPoint(x: $0.cgPointValue.x, y: 1360 - $0.cgPointValue.y) }
             }
@@ -155,7 +173,7 @@ final class GameSurface: UIView, MTKViewDelegate {
     }
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
     @objc private func background() { resetPresentationInterpolation(); resetTouches(); onSuspend?(); metal.isPaused = true }
-    @objc private func foreground() { metal.isPaused = false }
+    @objc private func foreground() { metal.isPaused = staticPresentation; if staticPresentation { metal.setNeedsDisplay() } }
     private func sendTouches(at time: TimeInterval) {
         let points = Array(contacts.values).sorted { $0.0 < $1.0 }
         onTouchSnapshot?(points); onTimedTouchSnapshot?(points, time)

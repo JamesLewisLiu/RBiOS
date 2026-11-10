@@ -47,6 +47,9 @@ final class GameSurfaceRenderTests: XCTestCase {
                      [CGPoint(x: 284, y: 408), CGPoint(x: 316, y: 408), CGPoint(x: 284, y: 392), CGPoint(x: 316, y: 392)]]
         draws.append(["id": "masked-panel", "name": "fixture-white", "image": image, "x": 300, "y": 400,
                       "clips": masks.map { $0.map { NSValue(cgPoint: $0) } }])
+        // Original menu GE2D solid rectangles have no bitmap/texture resource.
+        draws.append(["id": "solid-menu-rectangle", "name": "solid", "solidColor": [0, 1, 0, 1],
+                      "quad": [CGPoint(x: 80, y: 520), CGPoint(x: 120, y: 520), CGPoint(x: 80, y: 480), CGPoint(x: 120, y: 480)].map { NSValue(cgPoint: $0) }])
         surface.showSessionSprites(draws)
         var pixels = [UInt8](repeating: 0, count: 768 * 1360 * 4)
         var renderedFrames = 0
@@ -76,6 +79,10 @@ final class GameSurfaceRenderTests: XCTestCase {
                 let mapped = try XCTUnwrap(RBBridge.gamePoint(displayPoint, display: surface.displayRect)).cgPointValue
                 XCTAssertEqual(mapped.x, point.x, accuracy: 0.001); XCTAssertEqual(mapped.y, point.y, accuracy: 0.001)
             }
+            let solidOffset = (500 * 768 + 100) * 4
+            XCTAssertLessThan(pixels[solidOffset], 10)
+            XCTAssertGreaterThan(pixels[solidOffset + 1], 240, "Original solid rectangle was not rendered")
+            XCTAssertLessThan(pixels[solidOffset + 2], 10)
             let emptyOffset = (400 * 768 + 200) * 4
             XCTAssertLessThan(pixels[emptyOffset], 10, "Markers unexpectedly filled the playfield")
             XCTAssertGreaterThan(pixels[(400 * 768 + 308) * 4], 240, "Mask removed the visible panel")

@@ -2,6 +2,7 @@
 #include "rb/GamePresentation.hpp"
 #include "rb/StageScoreInitialization.hpp"
 #include "rb/StageSound.hpp"
+#include "rb/StageContinuousSound.hpp"
 #include <cstdlib>
 #include <memory>
 
@@ -84,6 +85,8 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
         NSMutableDictionary *resources = [NSMutableDictionary dictionary];
         for (const auto &cue : rb::stageSoundResources())
             resources[@(cue.key)] = [root URLByAppendingPathComponent:@(cue.path)];
+        const auto &loop = rb::StageContinuousSound::resource();
+        resources[@(loop.key)] = [root URLByAppendingPathComponent:@(loop.path)];
         _soundResources = [resources copy];
         rb::SessionOptions options;
         options.onJudgment = [soundQueue](const rb::SessionJudgmentEvent &event) {
@@ -173,17 +176,22 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
                 [clips addObject:points];
             }
             const auto textureIdentity = sprite.package + ":" + sprite.texture;
-            [draws addObject:@{
+            NSMutableDictionary *draw = [@{
                 @"id" : @(sprite.identity.c_str()),
                 @"name" : @(textureIdentity.c_str()),
-                @"image" : [self imageInPackage:sprite.package texture:sprite.texture],
                 @"quad" : quad,
                 @"clips" : clips,
                 @"layer" : @(sprite.layer),
                 @"alpha" : @(sprite.alpha),
                 @"multiply" : multiply,
                 @"blend" : @(sprite.blend)
-            }];
+            } mutableCopy];
+            if (sprite.solidColor) {
+                NSMutableArray *color = [NSMutableArray array];
+                for (auto value : *sprite.solidColor) [color addObject:@(value)];
+                draw[@"solidColor"] = color;
+            } else draw[@"image"] = [self imageInPackage:sprite.package texture:sprite.texture];
+            [draws addObject:draw];
         }
         NSMutableSet<NSString *> *pending = [NSMutableSet set];
         for (const auto &item : frame.unresolved)
@@ -209,6 +217,7 @@ UIImage *originalImage(const rb::AfpBitmap &bitmap) {
         [_soundEvents removeAllObjects];
         return @{
             @"sounds" : sounds,
+            @"holdSound" : snapshot.holdSoundActive ? @(rb::StageContinuousSound::resource().key) : @"",
             @"tick" : @(snapshot.tick),
             @"complete" : @(snapshot.complete),
             @"created" : @(snapshot.created),

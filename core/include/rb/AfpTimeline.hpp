@@ -50,6 +50,7 @@ struct AfpSpriteCommand {
     uint8_t blend = 0;
     std::vector<AfpClipQuad> clips;
     std::string instancePath;
+    std::optional<std::array<float, 4>> solidColor; // original untextured GE2D primitive
 };
 class AfpTimeline {
     Bytes decoded_;

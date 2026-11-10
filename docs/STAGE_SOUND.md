@@ -72,7 +72,7 @@ CPU judgment callbacks deliberately do not synthesize rival hit sounds: the
 original game uses the separate `0x1015E7C0 -> 0x10149230` stream for those sounds.
 That stream remains unported. The held-note loop (`14672`,
 `sys_shot_default1_long_loop.sd9`) is selected separately by `0x10160620` and
-started/stopped by `0x10163CE0`; continuous-loop lifecycle is also not restored
-in this one-shot path. Menu audio, the other profile banks, and exact hardware
+started/stopped by `0x10163CE0`; its restored lifecycle is documented in
+[STAGE_CONTINUOUS_SOUND](STAGE_CONTINUOUS_SOUND.md). Menu audio, the other profile banks, and exact hardware
 mixing/loudness remain outside this increment. Passing offline code tests does
 not establish device audible output or end-to-end touch-to-sound latency.

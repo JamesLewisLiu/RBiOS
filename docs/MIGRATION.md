@@ -63,10 +63,12 @@ ViewportTransform, UIKit, Metal, SpriteKit, AVAudioEngine and NetworkTransport a
 
 ## Critical unfinished behavior
 
-- Final JR/collection effect consumers, original hit sounds and complete AFP side effects.
-- Original title, selection and result scenes, font layout, dynamic bindings, full VM, masks and nonrectangular geometry.
+- Final JR/collection effect consumers, rival/menu sound paths and complete AFP side effects.
+- Complete original title, selection and result scene controllers, font layout, dynamic bindings, full VM, masks and nonrectangular geometry; static menu artwork and difficulty switching are now migrated.
 - Original full pool exhaustion behavior and independent same-tick cross-note cleanup ordering.
 - EA3 envelope/negotiation, discovery/card handling, account lifecycle, complete read/write and score submission.
 - Apple compilation, ARM64 floating-point behavior, real touch/audio synchronization, pixels and performance.
 
 Local persistence is intentionally excluded. UIKit entry or mocked responses are never used to claim completion of missing original behavior.
+
+The 2026-11-11 menu increment maps `0x1011A170`/`0x1011A380`/`0x100ADBD0` to [MenuSelection](MENU_SELECTION.md), `0x100C5EF0` and original AFP placements to [MenuPresentation](MENU_PRESENTATION.md), and the remaining held-note collection/lifecycle portions of `0x10160620`/`0x10163CE0` to [StageContinuousSound](STAGE_CONTINUOUS_SOUND.md). All fresh decompilation used the Official IDA MCP Server. Offline chart availability is an adapter policy, not recovered server entitlement behavior.

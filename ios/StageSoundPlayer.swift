@@ -90,6 +90,7 @@ final class StageSoundPlayer {
     private var generation: UInt64 = 0
     private var clips: [String: Clip] = [:]
     private var playing = false
+    private var loopName: String?
     private var observers: [NSObjectProtocol] = []
     var onError: ((Error) -> Void)?
     var onInterruption: (() -> Void)?
@@ -114,7 +115,7 @@ final class StageSoundPlayer {
         if advance { generation &+= 1 }; return generation
     }
     private func resetOnWork() {
-        playing = false
+        playing = false; loopName = nil
         for clip in clips.values { for node in clip.nodes { node.stop(); engine.detach(node) } }
         engine.stop(); clips.removeAll()
     }
@@ -177,11 +178,29 @@ final class StageSoundPlayer {
             }
         }
     }
+    // One aggregate original held-note voice. Repeated snapshots do not restart it.
+    // Pausing stops it; the next evaluated game frame decides whether to restart.
+    func setHeldLoop(_ name: String?) {
+        let generation = token()
+        work.async { [weak self] in
+            guard let self = self, self.token() == generation, self.playing else { return }
+            guard name != self.loopName else { return }
+            if let old = self.loopName { self.clips[old]?.nodes.first?.stop() }
+            self.loopName = nil
+            guard let name = name else { return }
+            guard let clip = self.clips[name], let node = clip.nodes.first else {
+                self.report(StageSoundError.unknownSound(name)); return
+            }
+            node.stop(); node.volume = 1; node.pan = 0
+            node.scheduleBuffer(clip.buffer, at: nil, options: .loops)
+            node.play(); self.loopName = name
+        }
+    }
     func pause() {
         work.async { [weak self] in self?.pauseOnWork() }
     }
     private func pauseOnWork() {
-        playing = false
+        playing = false; loopName = nil
         for clip in clips.values { for node in clip.nodes { node.stop() }; clip.voices.cancel() }
         engine.pause()
     }

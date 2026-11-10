@@ -49,3 +49,5 @@ This repository does not include the original DLL, game files or decompilation o
 The DLL is read as version-bound data and is not executed on iPad. This application contains no x86 execution layer or JIT. See [RESOURCES](docs/RESOURCES.md) for the accepted layout and exact source hash.
 
 Local default hit effects now use the original SD9 bank. Capable displays are requested at up to 120 Hz, with interpolated note rendering over the original 60 Hz simulation. See [sound recovery](docs/STAGE_SOUND.md) and [display timing](docs/RENDER_TIMING.md) for implemented behavior, remaining gaps and device checks.
+
+The menu flow now includes original title, selection and result artwork, recovered difficulty switching and voices, session results and replay. Controls remain native and the original AFP page samples are static; full original menus are not yet recovered. Hold/Switch notes now share the original continuous SD9 loop. See [menu coverage](docs/MENU_PRESENTATION.md) and [loop lifecycle](docs/STAGE_CONTINUOUS_SOUND.md).

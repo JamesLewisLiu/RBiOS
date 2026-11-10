@@ -125,7 +125,7 @@ struct GamePresentation::Impl {
                                {1, 1, 1, 1},
                                alpha,
                                layer,
-                               blend, {}});
+                               blend, {}, std::nullopt});
     }
     void movie(PresentationFrame &out, std::string id, const std::string &pack,
                const std::string &name, uint32_t frame, float x, float y, int32_t layer,
@@ -151,7 +151,7 @@ struct GamePresentation::Impl {
                 p = {x + c * dx - s * dy, y + s * dx + c * dy};
             }
             out.sprites.push_back({id + ":" + std::to_string(part++), pack, draw.texture, quad,
-                                   draw.multiply, alpha, layer, draw.blend, {}});
+                                   draw.multiply, alpha, layer, draw.blend, {}, draw.solidColor});
             for (const auto &clip : draw.clips) {
                 std::array<MotionVector, 4> transformed;
                 for (unsigned i = 0; i < 4; ++i) {

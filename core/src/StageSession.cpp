@@ -3,6 +3,7 @@
 #include "rb/NoteFrame.hpp"
 #include "rb/Route.hpp"
 #include "rb/StageOrder.hpp"
+#include "rb/StageContinuousSound.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -70,6 +71,7 @@ struct StageSession::Impl {
     CPUState cpu;
     OriginalRandom random;
     TouchInput touch;
+    StageContinuousSound continuousSound;
     int32_t tick = -151, createdCount = 0;
     size_t initialCursor = 0;
     bool dirty = true, complete = false;
@@ -433,6 +435,7 @@ struct StageSession::Impl {
     }
     void step(const std::vector<TouchPoint> &points) {
         ++tick;
+        continuousSound.beginFrame();
         touch.advance(points, {70, 80, 1142});
         if (dirty)
             sortNotes();
@@ -475,6 +478,7 @@ struct StageSession::Impl {
             auto result =
                 evaluateNote(s->note, touch.state, rules, battle, players[unsigned(s->note.side)],
                              score, s->note.side && rules.mode == 3 ? &cpu : nullptr, &random);
+            continuousSound.observe(s->note.side, s->note.judgment.kind, s->note.judgment.held);
             if (result) {
                 presentationJudgment(*s, result->original);
                 if (options.onJudgment)
@@ -490,6 +494,7 @@ struct StageSession::Impl {
                 s->graphicLabelTick = tick;
             }
         }
+        continuousSound.endFrame();
         launchSources();
         for (auto *s : order)
             if (s->frame.active) {
@@ -558,6 +563,7 @@ SessionSnapshot StageSession::snapshot() const {
     SessionSnapshot out;
     out.tick = impl->tick;
     out.complete = impl->complete;
+    out.holdSoundActive = impl->continuousSound.active();
     out.created = impl->createdCount;
     out.players = impl->players;
     out.battle = impl->battle;

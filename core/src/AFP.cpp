@@ -99,6 +99,8 @@ const TextureInfo &AfpPackage::texture(const std::string &name) const {
     for (const auto &t : textures_)
         if (t.nameCP932 == name)
             return t;
+    for (const auto *fallback : textureFallbacks_)
+        for (const auto &t : fallback->textures()) if (t.nameCP932 == name) return t;
     throw Error("AFP bitmap absent: " + name);
 }
 const AfpMovieInfo &AfpPackage::movie(const std::string &name) const {
@@ -109,11 +111,17 @@ const AfpMovieInfo &AfpPackage::movie(const std::string &name) const {
 }
 std::array<int32_t, 2> AfpPackage::textureSheetSize(const std::string &name) const {
     auto found = textureSheetSizes_.find(name);
-    if (found == textureSheetSizes_.end())
+    if (found == textureSheetSizes_.end()) {
+        for (const auto *fallback : textureFallbacks_)
+            for (const auto &t : fallback->textures()) if (t.nameCP932 == name) return fallback->textureSheetSize(name);
         throw Error("AFP texture sheet absent");
+    }
     return found->second;
 }
 AfpBitmap AfpPackage::bitmap(const std::string &name) const {
+    if (std::none_of(textures_.begin(), textures_.end(), [&](const auto &t){return t.nameCP932 == name;}))
+        for (const auto *fallback : textureFallbacks_)
+            for (const auto &t : fallback->textures()) if (t.nameCP932 == name) return fallback->bitmap(name);
     AfpBitmap out;
     out.texture = texture(name);
     const auto &t = out.texture;

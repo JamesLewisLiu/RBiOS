@@ -121,3 +121,11 @@ The original four score-label textures and AFP positions pass independent resour
 All 26 native test programs and nine Python tests pass locally. The sound selector passes 16,800 comparisons against the original instruction chain and seven SD9 identity checks. All seven effects decode through the native Wave reader to 1,440,928 bytes of non-silent, stereo PCM in memory. The batched StageSession test confirms one local sound, no synthesized rival sound and 1,151 per-tick drains.
 
 Four original chart difficulties pass with 738 sampled frames, 46,765 draws and 194 used bitmaps. Before each run, all 671 textures from the five supported stage packages decode successfully (47,597,024 BGRA bytes). No source assets are converted or replaced. Apple build/simulator results are tracked separately through Actions; actual device audible output, frame times and latency are unverified for this increment.
+
+## Menu flow and continuous held-note sound, 2026-11-11
+
+The recovered difficulty controller passes 24,576 original-instruction comparisons. The continuous-sound controller passes 153 native assertions and all four original default-bank lifecycle combinations. Eight synthetic Hold/Switch sessions compare every batched/per-tick state; additional manual contact, cancellation, rival-silence and overlapping-note checks pass. The original loop decodes to 51,772 PCM bytes in memory. The four original difficulty voices match the source table and SD9 identities and decode to 2,544,264 PCM bytes in memory. All 30 native test programs and nine Python tests pass locally.
+
+Three original menu pages pass with 195 draws (156 textured, 39 solid), including direct checks of the original title white rectangle. The unchanged stage audit passes four difficulties, 738 sampled frames, 46,765 draws and 194 used textures after preparing all 671 stage textures. These checks establish supported asset parsing and bounded logic; full original page scripts, native page interaction on the device, loop audibility and original-engine pixel parity remain separate.
+
+Simulator coverage adds difficulty availability/debounce/confirmation, native control wiring, result counter mapping and untextured solid-rectangle GPU rendering at every display scale. See the associated Actions run for Apple results; locally generated host results alone do not establish Apple correctness.

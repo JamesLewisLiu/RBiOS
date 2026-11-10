@@ -31,6 +31,21 @@ NS_ASSUME_NONNULL_BEGIN
     NS_SWIFT_NAME(advance(to:touches:));
 - (void)cancelTouches;
 @end
+// Offline menu adapters retain no account, score or history state.
+@interface RBDifficultyMenu : NSObject
++ (NSDictionary<NSString *, NSURL *> *)soundResourcesAtRoot:(NSURL *)root NS_SWIFT_NAME(soundResources(at:));
+- (nullable instancetype)initWithAvailable:(NSArray<NSNumber *> *)available initial:(NSInteger)initial error:(NSError **)error
+    NS_SWIFT_NAME(init(available:initial:));
+- (nullable NSDictionary<NSString *, id> *)updateAtTick:(int32_t)tick action:(NSString *)action error:(NSError **)error
+    NS_SWIFT_NAME(update(at:action:));
+@property(nonatomic, readonly) NSInteger selected;
+@end
+@interface RBMenuScene : NSObject
+- (nullable instancetype)initWithRoot:(NSURL *)root page:(NSString *)page error:(NSError **)error
+    NS_SWIFT_NAME(init(root:page:));
+- (nullable NSDictionary<NSString *, id> *)frameAtTick:(uint32_t)tick error:(NSError **)error
+    NS_SWIFT_NAME(frame(at:));
+@end
 @interface RBAudioDecoder : NSObject
 @property(nonatomic, readonly) NSUInteger blockCount;
 @property(nonatomic, readonly) double sampleRate;

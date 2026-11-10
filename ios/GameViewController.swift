@@ -6,6 +6,7 @@ final class GameViewController: UIViewController {
     private let root: URL
     private let song: [String: Any]
     private let difficulty: Int
+    private let menuSongs: [[String: Any]]
     private let worker = DispatchQueue(label: "rb.stage", qos: .userInteractive)
     private let audio = AudioStream()
     private let sound = StageSoundPlayer()
@@ -23,8 +24,8 @@ final class GameViewController: UIViewController {
     private var audioStarted = false, audioEnded = false
     private var tailSeconds: Double = 0, finalAudioSeconds: Double = 0
     private var hasAppeared = false
-    init(root: URL, song: [String: Any], difficulty: Int) {
-        self.root = root; self.song = song; self.difficulty = difficulty
+    init(root: URL, song: [String: Any], difficulty: Int, menuSongs: [[String: Any]] = []) {
+        self.root = root; self.song = song; self.difficulty = difficulty; self.menuSongs = menuSongs
         super.init(nibName: nil, bundle: nil)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -148,6 +149,8 @@ final class GameViewController: UIViewController {
         if !paused && !finished {
             let requests = (snapshot["sounds"] as? [String] ?? []).map { StageSoundRequest(name: $0) }
             sound.play(requests)
+            let loop = snapshot["holdSound"] as? String ?? ""
+            sound.setHeldLoop(loop.isEmpty ? nil : loop)
         }
         let players = snapshot["players"] as? [[String: Any]] ?? []
         if let local = players.first, loading || tick % 6 == 0 || (snapshot["complete"] as? NSNumber)?.boolValue == true {
@@ -161,14 +164,11 @@ final class GameViewController: UIViewController {
         if detail.text != status { detail.text = status }
         if (snapshot["complete"] as? NSNumber)?.boolValue == true && !finished {
             finished = true; freeze(); audio.stop(); sound.stop()
-            let message = players.enumerated().map { side, p in
-                let score = (p["score"] as? NSNumber)?.intValue ?? 0, combo = (p["maxCombo"] as? NSNumber)?.intValue ?? 0
-                let rate = (p["finalRate"] as? NSNumber)?.doubleValue ?? 0
-                return String(format: "%@  %d points - Max combo %d - AR %.2f%%", side == 0 ? "Player" : "CPU", score, combo, rate * 100)
-            }.joined(separator: "\n") + "\n\nThese results will not be saved or uploaded."
-            let alert = UIAlertController(title: "Stage complete", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Back to songs", style: .default) { [weak self] _ in self?.navigationController?.popViewController(animated: true) })
-            present(alert, animated: true)
+            if let navigation = navigationController, navigation.topViewController === self {
+                let result = MenuViewController(root: root, songs: menuSongs, page: .result, song: song,
+                                                result: ["players": players], difficulty: difficulty)
+                navigation.setViewControllers(Array(navigation.viewControllers.dropLast()) + [result], animated: true)
+            }
         }
     }
     private func resumeEffects() {

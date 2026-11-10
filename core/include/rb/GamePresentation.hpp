@@ -3,6 +3,7 @@
 #include "StageSession.hpp"
 #include <array>
 #include <memory>
+#include <optional>
 
 namespace rb {
 struct PresentationSprite {
@@ -13,6 +14,7 @@ struct PresentationSprite {
     int32_t layer=40;
     uint32_t blend=0;
     std::vector<std::array<MotionVector, 4>> clips;
+    std::optional<std::array<float, 4>> solidColor;
 };
 struct PresentationFrame {
     std::vector<PresentationSprite> sprites;

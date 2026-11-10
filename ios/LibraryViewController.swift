@@ -32,6 +32,9 @@ final class LibraryViewController: UITableViewController, UIDocumentPickerDelega
                     self.root?.stopAccessingSecurityScopedResource(); self.root = url; self.songs = list
                     if let bookmark = bookmark { UserDefaults.standard.set(bookmark, forKey: "resourceBookmark") }
                     self.navigationItem.leftBarButtonItem?.isEnabled = true; self.tableView.reloadData()
+                    if self.navigationController?.topViewController === self {
+                        self.navigationController?.pushViewController(MenuViewController(root: url, songs: list), animated: true)
+                    }
                 }
             } catch {
                 if accessed { url.stopAccessingSecurityScopedResource() }
@@ -47,21 +50,7 @@ final class LibraryViewController: UITableViewController, UIDocumentPickerDelega
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard let root = root else { return }
-        let song = songs[indexPath.row], levels = song["levels"] as? [NSNumber] ?? []
-        let names = ["BASIC", "MEDIUM", "HARD", "WHITE HARD"]
-        let alert = UIAlertController(title: song["title"] as? String, message: "Select an original chart difficulty", preferredStyle: .alert)
-        let available = song["difficulties"] as? [NSNumber] ?? []
-        for value in available {
-            let difficulty = value.intValue
-            guard difficulty >= 0, difficulty < min(4, levels.count) else { continue }
-            let level = levels[difficulty].intValue
-            guard level > 0, level < 128 else { continue }
-            alert.addAction(UIAlertAction(title: "\(names[difficulty]) · Lv.\(level)", style: .default) { [weak self] _ in
-                self?.navigationController?.pushViewController(GameViewController(root: root, song: song, difficulty: difficulty), animated: true)
-            })
-        }
-        if alert.actions.isEmpty { message("No original chart difficulty is available for this song."); return }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel)); present(alert, animated: true)
+        navigationController?.pushViewController(MenuViewController(root: root, songs: songs, page: .difficulty, song: songs[indexPath.row]), animated: true)
     }
     @objc private func settings() { navigationController?.pushViewController(SettingsViewController(root: root), animated: true) }
     private func message(_ text: String) { let a = UIAlertController(title: "Resource check", message: text, preferredStyle: .alert); a.addAction(UIAlertAction(title: "Close", style: .default)); present(a, animated: true) }

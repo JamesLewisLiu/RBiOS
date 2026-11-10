@@ -19,10 +19,12 @@ class AfpPackage {
     std::vector<AfpMovieInfo> movies_;
     std::map<std::string, std::array<int32_t, 2>> textureSheetSizes_;
     bool contains(const std::string &) const;
+    std::vector<const AfpPackage *> textureFallbacks_;
     std::string resolve(const std::string &directory, const std::string &name) const;
 
   public:
     explicit AfpPackage(Bytes);
+    void addTextureFallback(const AfpPackage &package) { textureFallbacks_.push_back(&package); }
     const std::vector<TextureInfo> &textures() const {
         return textures_;
     }

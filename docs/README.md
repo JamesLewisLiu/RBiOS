@@ -47,6 +47,9 @@
 | [CHARACTER_RESOURCES](CHARACTER_RESOURCES.md) | Complete portrait bitmaps and source artwork boundaries |
 | [GAME_PRESENTATION](GAME_PRESENTATION.md) | Core-to-Apple presentation boundary |
 | [STAGE_SOUND](STAGE_SOUND.md) | Original local hit sounds and pending audio recovery |
+| [STAGE_CONTINUOUS_SOUND](STAGE_CONTINUOUS_SOUND.md) | Original Hold/Switch loop lifecycle |
+| [MENU_SELECTION](MENU_SELECTION.md) | Recovered difficulty selection and original instruction comparisons |
+| [MENU_PRESENTATION](MENU_PRESENTATION.md) | Original static title/selection/result artwork and remaining page bindings |
 | [RENDER_TIMING](RENDER_TIMING.md) | Up to 120 Hz presentation over 60 Hz logic |
 
 Authored documentation, interface strings and comments are English. Original game metadata and assets retain their original encoding and contents.

@@ -405,16 +405,27 @@ std::vector<AfpSpriteCommand> AfpTimeline::sampleExportedFrame(const AfpPackage 
                 throw Error("unsupported AFP irregular quad");
             Reader dr(geo, drawOffset);
             auto mode = dr.u8(), df = dr.u8(), texture = dr.u8(), tex2 = dr.u8();
-            if (mode != 4 || df != 3 || tex2 != 255 || texture >= labels)
-                throw Error("unsupported AFP untextured/colored geometry");
+            if (mode != 4 || (df != 3 && df != 67 && df != 9) || tex2 != 255 || (df != 9 && texture >= labels))
+                throw Error("unsupported AFP untextured/colored geometry id=" + std::to_string(id) + " flags=" + std::to_string(df));
             if (dr.be16() != 6 || dr.be16() != 0)
                 throw Error("unsupported AFP triangles");
-            dr.be32();
+            const auto rgba = dr.be32();
             auto triangles = dr.be32();
             Reader ir(geo, triangles);
             for (auto expected : {0, 1, 2, 2, 1, 3})
                 if (ir.be16() != expected)
                     throw Error("unsupported AFP triangle topology");
+            if (df == 9) {
+                if (texture != 255 || textureCoordinates != 0)
+                    throw Error("unsupported AFP solid rectangle texture fields");
+                const std::array<float,4> solid{{float((rgba >> 24) & 255) / 255,
+                    float((rgba >> 16) & 255) / 255, float((rgba >> 8) & 255) / 255,
+                    float(rgba & 255) / 255}};
+                out.push_back({"", parent, {pts[0][0], pts[1][0], pts[0][1], pts[2][1]},
+                    color, {}, uint8_t(blend), clips, path, solid});
+                active.erase(id);
+                return;
+            }
             Reader lr(geo, labelOffset + 4 * texture);
             auto text = lr.be32();
             auto raw = cstring(geo, text, geo.size() - text);
@@ -433,7 +444,8 @@ std::vector<AfpSpriteCommand> AfpTimeline::sampleExportedFrame(const AfpPackage 
                     float value;
                     std::memcpy(&value, &bits, 4);
                     const auto edge = axis == 0 ? (vertex % 2) : (2 + vertex / 2);
-                    const auto expected = float(textureInfo.uvRect[edge]) / float(sheetSize[axis]);
+                    const auto expected = df == 67 ? float(vertex / (axis == 0 ? 1 : 2) % 2)
+                        : float(textureInfo.uvRect[edge]) / float(sheetSize[axis]);
                     if (!std::isfinite(value) || std::abs(value - expected) > 0.0000001f)
                         throw Error("unsupported AFP texture UV variation");
                 }
@@ -450,7 +462,7 @@ std::vector<AfpSpriteCommand> AfpTimeline::sampleExportedFrame(const AfpPackage 
                            {pts[0][0], pts[1][0], pts[0][1], pts[2][1]},
                            color,
                            {},
-                           uint8_t(blend), clips, path});
+                           uint8_t(blend), clips, path, std::nullopt});
         } else
             throw Error("unsupported AFP symbol kind");
         active.erase(id);
