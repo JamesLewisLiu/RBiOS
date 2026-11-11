@@ -25,6 +25,7 @@ class AvsThreadAffinity {
 public:
     explicit AvsThreadAffinity(uint64_t mask);
     int32_t next();
+    void release(int32_t selected);
 private:
     struct Node { uint16_t count = 0; int8_t next = -1, previous = -1; };
     std::array<Node, 64> nodes_{};

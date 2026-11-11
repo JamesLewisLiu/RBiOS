@@ -83,4 +83,30 @@ int32_t AvsThreadAffinity::next() {
     nodes_[successor].previous = int8_t(selected); nodes_[previous].next = int8_t(selected);
     return selected;
 }
+void AvsThreadAffinity::release(int32_t selected) {
+    if (selected < 0) return;
+    if (selected >= 64) throw std::invalid_argument("AVS affinity index exceeds the original table");
+    auto &node = nodes_[selected];
+    if (node.next < 0) return;
+    const auto count = --node.count;
+    if (selected == head_) return;
+    auto successor = node.next;
+    if (count > nodes_[successor].count) return;
+    auto boundary = nodes_[head_].next;
+    if (selected == boundary) {
+        if (count < nodes_[head_].count) { head_ = selected; return; }
+        boundary = successor;
+    }
+    const auto previous = node.previous;
+    nodes_[successor].previous = previous;
+    nodes_[previous].next = successor;
+    int predecessor;
+    for (;;) {
+        predecessor = successor; successor = nodes_[successor].next;
+        if (count > nodes_[successor].count) break;
+        if (successor == boundary) { head_ = selected; break; }
+    }
+    node.next = successor; node.previous = int8_t(predecessor);
+    nodes_[successor].previous = int8_t(selected); nodes_[predecessor].next = int8_t(selected);
+}
 } // namespace rb

@@ -82,3 +82,7 @@ Authored documentation, interface strings and comments are English. Original gam
 
 - [AVS thread bootstrap policy](AVS_THREAD_BOOTSTRAP.md): original stack, count, arena and affinity calculations.
 - [AVS native workers](AVS_NATIVE_WORKERS.md): real worker lifecycle and remaining admission/recycling dependencies.
+
+- [AVS resource pools](AVS_RESOURCE_POOL.md): real finite allocations, descriptor ownership and usage queries.
+- [AVS tasks](AVS_TASKS.md): original task admission, worker recycling and failure side effects.
+- [AVS alarms](AVS_ALARMS.md): original schedules, callback order and reserved worker boundary.

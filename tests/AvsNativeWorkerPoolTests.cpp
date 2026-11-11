@@ -5,9 +5,20 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
+#include <thread>
 
 namespace { void require(bool ok) { if (!ok) throw std::runtime_error("AVS native worker regression"); } }
 int main(int argc,char **argv) { try {
+    if(argc>1&&std::string(argv[1])=="--admission") {
+        rb::AvsDescriptors descriptors(8);rb::AvsMutexes mutexes(descriptors,8);
+        std::unique_ptr<rb::AvsNativeWorkerPool> pool;char op;
+        auto print=[&](size_t slot){auto s=pool->status(slot);std::cout<<slot<<' '<<s.state<<' '<<s.remainingUses<<' '<<s.stackSize<<' '<<s.priority<<' '<<s.affinity<<'\n';};
+        while(std::cin>>op) {
+            if(op=='I'){rb::AvsThreadBootstrapPlan p;std::cin>>p.threadCount>>p.initialCount>>p.expiryCount>>p.workerStack>>p.affinityMask;pool.reset();pool=std::make_unique<rb::AvsNativeWorkerPool>(p,mutexes);std::cout<<"I\n";}
+            else if(op=='C'){uint32_t stack,priority,expiry;std::cin>>stack>>priority>>expiry;auto slot=pool->checkout(stack,priority,expiry);if(slot)print(*slot);else std::cout<<"none\n";}
+            else if(op=='T'){size_t slot;std::cin>>slot;auto result=pool->assign(slot,[]{return 42;});result.get();pool->waitIdle(slot);print(slot);}
+        }return 0;
+    }
     auto verifyCleanupFailure = [] {
         rb::AvsDescriptors descriptors(8);rb::AvsMutexes mutexes(descriptors,3);
         auto token=mutexes.create();auto mainToken=mutexes.create();
@@ -92,6 +103,20 @@ int main(int argc,char **argv) { try {
         auto stopping=std::async(std::launch::async,[&]{pool.stop();});
         require(stopping.wait_for(std::chrono::milliseconds(10))==std::future_status::timeout);
         release.set_value();require(running.get()==99);stopping.get();
+        require(!pool.status(2).started);
+    }
+    {
+        plan.initialCount=1;plan.expiryCount=0;
+        rb::AvsNativeWorkerPool pool(plan,mutexes);
+        std::promise<void> entered,release;auto gate=release.get_future();
+        auto running=pool.assign(2,[&]{entered.set_value();gate.wait();return pool.checkout(65536,2)?0:1;});
+        entered.get_future().wait();
+        auto stopping=std::async(std::launch::async,[&]{pool.stop();});
+        // State zero is published by stop only after it holds lifecycleMutex.
+        // Releasing the task now forces its admission to race with joining.
+        while(pool.status(2).state!=0)std::this_thread::yield();
+        auto secondStop=std::async(std::launch::async,[&]{pool.stop();});
+        release.set_value();require(running.get()==1);stopping.get();secondStop.get();
         require(!pool.status(2).started);
     }
     plan.workerPriority=5;bool rejected=false;

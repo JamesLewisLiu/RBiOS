@@ -5,6 +5,7 @@
 #include <functional>
 #include <future>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace rb {
@@ -22,17 +23,21 @@ public:
         bool affinityApplied;
         bool started;
         bool failed;
+        uint32_t stackSize, priority;
+        bool priorityApplied;
     };
     AvsNativeWorkerPool(const AvsThreadBootstrapPlan &, AvsMutexes &);
     ~AvsNativeWorkerPool();
     AvsNativeWorkerPool(const AvsNativeWorkerPool &) = delete;
     AvsNativeWorkerPool &operator=(const AvsNativeWorkerPool &) = delete;
     std::future<int32_t> assign(size_t slot, Task, Completion = {});
+    std::optional<size_t> checkout(uint32_t stackSize, uint32_t priority, uint32_t expiry = 1);
     void waitIdle(size_t slot);
     WorkerStatus status(size_t slot) const;
     const std::vector<size_t> &initialStartOrder() const noexcept;
     void stop();
     static uintptr_t currentWorkerIdentity() noexcept;
+    bool isCurrentWorker(size_t slot) const;
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

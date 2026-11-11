@@ -781,12 +781,36 @@
     "pool_constructions": 17,
     "task_transitions": 74,
     "native_failures": "Task/callback exceptions, held recursive locks, other-thread ownership, self wait/join and shutdown",
-    "apple_validation": "pending Actions",
+    "apple_validation": {
+      "status": "passed",
+      "revision": "9056cb0",
+      "actions_run": 43106827921,
+      "cpp_test_programs": 49,
+      "python_tests": 9,
+      "simulator_tests": 48,
+      "packaging": "arm64 device archive; minimum OS 14.0; matching IPA/TIPA"
+    },
     "limits": [
       "Original OS calls captured by oracle; native workers use real threads",
       "Selected-slot assignment only; original task admission and recycling remain incomplete",
       "Default startup still stops before complete AVS boot",
       "No device play or game-server traffic"
+    ]
+  },
+  "avs_tasks_resource_alarms": {
+    "date": "2026-11-12",
+    "host_test_programs": 52,
+    "resource_pool_commands": 18894,
+    "admission_configurations": 48,
+    "admission_operations": 4800,
+    "export091_exhaustion_cases": 2,
+    "alarm_state_cases": 254,
+    "apple_validation": "See the Actions run for this source revision; host checks alone do not verify Apple execution",
+    "limits": [
+      "OS calls and caller callbacks are explicit oracle boundaries",
+      "Native semaphore saturation and shutdown failures tested separately",
+      "Original aggregate construction order, reserved alarm task, unified TLS and completion registry remain incomplete",
+      "No full boot, original TEST/game flow, new device play or server traffic"
     ]
   }
 }

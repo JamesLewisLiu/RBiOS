@@ -1,4 +1,5 @@
 #include "rb/AvsMutexes.hpp"
+#include "rb/AvsResourcePool.hpp"
 #include <atomic>
 #include <future>
 #include <iostream>
@@ -63,6 +64,59 @@ int main(int argc, char **argv) { try {
     require(only && pool.available() == 1);
     require(pool.create() == 0 && pool.available() == 1); // Descriptor failure unwinds resource.
     require(pool.destroy(only) == 0 && pool.available() == 2);
+    // Real original array descriptor and resource accounting, with native
+    // mutex records outside the original 16-byte resource payload.
+    {
+        rb::AvsDescriptors shared(8);
+        rb::AvsResourcePool storage(shared,16,3);
+        const auto arrayToken=storage.descriptor();
+        require((arrayToken&0x7e0000)==0x20000 && shared.lookup(arrayToken));
+        void *borrowed=storage.allocate();
+        uint32_t retired;
+        {
+            rb::AvsMutexes mutexes(shared,storage);
+            require(mutexes.available()==2);
+            mutexes.registerCurrentThread(1);
+            auto first=mutexes.create();retired=mutexes.create();
+            require(first && retired && !mutexes.create());
+            require(storage.statistics().active==3 && storage.statistics().peakActive==3);
+            require(storage.activeIndices()==std::vector<uint32_t>({0,1,2}));
+            mutexes.lock(first,1);mutexes.unlock(first);
+            mutexes.destroy(first);
+            require(storage.freeCount()==1 && !storage.at(1,true));
+            first=mutexes.create();require(first && storage.at(1,true));
+            require(storage.activeIndices()==std::vector<uint32_t>({0,2,1}));
+            mutexes.unregisterCurrentThread();
+        }
+        require(shared.lookup(arrayToken) && !shared.lookup(retired));
+        require(storage.freeCount()==2 && storage.activeIndices()==std::vector<uint32_t>({0}));
+        {
+            rb::AvsMutexes reused(shared,storage);
+            require(reused.create() && reused.available()==1);
+        }
+        require(storage.freeCount()==2);
+        storage.release(borrowed);require(storage.freeCount()==3);
+        rb::AvsResourcePool undersized(shared,15,1);
+        bool bad=false;try{rb::AvsMutexes invalid(shared,undersized);}catch(const std::invalid_argument&){bad=true;}
+        require(bad && undersized.freeCount()==1);
+        rb::AvsResourcePool oversized(shared,16,65536);
+        bad=false;try{rb::AvsMutexes invalid(shared,oversized);}catch(const std::invalid_argument&){bad=true;}
+        require(bad && oversized.freeCount()==65536 && oversized.statistics().active==0);
+        rb::AvsDescriptors unrelated(8);
+        bad=false;try{rb::AvsMutexes invalid(unrelated,storage);}catch(const std::invalid_argument&){bad=true;}
+        require(bad && storage.freeCount()==3);
+    }
+    {
+        rb::AvsDescriptors limited(2);
+        rb::AvsResourcePool storage(limited,16,2);
+        rb::AvsMutexes mutexes(limited,storage);
+        auto token=mutexes.create();require(token && storage.freeCount()==1);
+        require(!mutexes.create() && storage.freeCount()==1 && storage.statistics().active==1);
+        // Failed descriptor creation still passes through original allocation,
+        // so peak usage observes the temporary second resource.
+        require(storage.statistics().peakActive==2);
+        mutexes.destroy(token);require(storage.freeCount()==2);
+    }
     // Race destruction against a newly arriving lock caller. Exactly one
     // operation may win; a rejected destroy must leave the token usable.
     {

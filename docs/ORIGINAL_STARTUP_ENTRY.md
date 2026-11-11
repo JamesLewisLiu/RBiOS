@@ -15,7 +15,7 @@ This Release build intentionally stops before the game. It replaces the misleadi
 ## Other recovered services in this increment
 
 - XML event-to-property conversion covers the actual original AVS config; full original comparisons include complete trees and errors. Serialization and other content types remain unfinished.
-- Real mutex resources and calling-thread TLS registration have explicit ownership, error and completion behavior. Native initial-worker creation and task execution are now implemented independently; full task admission/recycling and aggregate initialization remain unfinished.
+- Real mutex resources and calling-thread TLS registration have explicit ownership, error and completion behavior. Native initial-worker creation and task execution are now implemented independently; task admission/recycling now has a concrete implementation, while original aggregate construction order and exported task/TLS integration remain unfinished.
 - A concrete read-only fs mount registry resolves virtual paths, holds busy references during file access, and preserves mount options, including ignored nvram-specific keys in the original fs parser. Full addfs callbacks and other filesystem types remain unfinished.
 
 These components are independently tested but are not invoked out of the original boot order to move the startup screen forward. Original resources and configs remain unchanged in this increment; no server or public SNTP endpoint is contacted.
@@ -23,3 +23,5 @@ These components are independently tested but are not invoked out of the origina
 ## Verification
 
 Portable suites cover XML-to-config import, native synchronization and mount/file lifetimes. Apple tests cover UTF-8 and CP932 config bytes, CDATA/entities, malformed/unsupported input, missing DLL failure and default-root selection. A successful build/test does not establish completion of the stopped bootstrap or device playability.
+
+Finite resource pools and the alarm dispatcher are now implemented separately. The boot owner still must bind the reserved alarm task and construct the services in original order. No new component is called out of order to advance the displayed stop address.

@@ -96,3 +96,13 @@ The data-contract test passes a decoded property tree through import, product-mo
 RBOriginalStartup is the Apple runtime owner for the currently recovered preparation only. Its default entry stops at incomplete 0x10029410; it does not synthesize an original scene or claim successful AVS boot. The previous component harness remains explicit Debug tooling. See [startup entry](ORIGINAL_STARTUP_ENTRY.md) and the component evidence guides.
 
 The next thread increment maps AVS 0x10039530/0x1001ABC0 and 0x1005C1D0/0x1005C1A0 to [bootstrap policy](AVS_THREAD_BOOTSTRAP.md), and 0x10041E40/0x10041660/0x10041130/0x10041750 to [native worker lifecycle](AVS_NATIVE_WORKERS.md). Task admission, recycling and the remaining aggregate services remain unported; creating initial workers is not equivalent to completing AVS boot.
+
+## Resource, task and alarm services
+
+| Original AVS addresses | Native component | Recovery boundary |
+| --- | --- | --- |
+| 0x1000F900 / 0x1000F830 / 0x1000F6F0 / 0x1000F340 | AvsResourcePool | Real aligned finite slots, type-1 descriptors, ordering, counters and cursor queries; native-width metadata |
+| 0x1001A7D0 / 0x10041B00 / 0x10041D80 / 0x10041A90 / 0x10041AC0 | AvsTasks / AvsNativeWorkerPool | Actual task admission, idle reuse, retirement and recycling; source allocation-failure side effects retained |
+| 0x100405E0 / 0x10040490 / 0x10040A60 / 0x100409C0 / 0x10040960 / 0x10040870 | AvsAlarms | Real finite records, wrapped clock, schedule/callback order and blocking dispatcher; reserved task and boot ownership remain external |
+
+The enclosing original boot still requires correct task-pool-before-worker construction, reserved alarm task binding, unified exported task/TLS access, completion-handler registration and remaining service lifetimes. These components do not silently complete the aggregate or enter a game scene.

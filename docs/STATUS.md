@@ -18,8 +18,8 @@ Updated 2026-11-12. Implementation, host validation, Apple builds and device pla
 | Scores and profiles | Memory only; no database, history or upload queue | Persistence intentionally excluded |
 | Networking | Original fields, selected callbacks, protocol/transport isolation, mocks and configuration | Full EA3 envelope, discovery/card/profile/score flow and URLSession bridge |
 | Embedded server | Lifecycle interface; unavailable without source | Server-source migration |
-| Windows build | Zig C++17 and 49 test programs passed, including native AVS services and configuration backup/replacement | Not ARM64/iOS compilation evidence |
-| macos-15 Actions | Startup preparation at bb19e63 passed arm64 archive, minimum-OS validation and 48 simulator tests; see Actions for subsequent revisions | Simulator tests do not establish iPadOS 14.6 hardware behavior |
+| Windows build | Zig C++17 and 52 test programs passed, including native AVS services and configuration backup/replacement | Not ARM64/iOS compilation evidence |
+| macos-15 Actions | Worker foundation at 9056cb0 passed 49 portable tests, arm64 archive, minimum-OS validation and 48 simulator tests; see Actions for subsequent revisions | Simulator tests do not establish iPadOS 14.6 hardware behavior |
 | M1 / iPadOS 14.6 | User reports installation and provides stage-completion screenshots with corrected field framing | New frame graphics, performance, synchronization and instrumented touch testing |
 | Live server | No probe, login or upload | Offline tests do not establish live compatibility |
 
@@ -62,3 +62,9 @@ Bounded services now include XML event-to-property decoding, recursive mutex res
 ## Native worker lifecycle, 2026-11-12
 
 Bootstrap configuration now retains original stack/count adjustments, arena accounting and CPU-affinity selection. Native worker code creates real threads, waits for explicit selected-slot assignment, invokes the original four completion callbacks in order, tracks expiry and joins on shutdown. Native failures do not report successful task completion. Task admission, idle/retired list ownership, recycling, unified TLS exports and condition/event/semaphore/alarm services remain unfinished, so the default startup stop is unchanged. See [worker evidence and limits](AVS_NATIVE_WORKERS.md).
+
+## Task admission, resource pools and alarms, 2026-11-12
+
+The latest service increment adds real finite resource pools and connects them to native task controls and optionally mutex resources. Worker checkout now restores idle selection, retired-slot recycling, affinity release and larger-stack restart. Task creation preserves original validation, descriptor ordering and allocation-failure side effects; deferred descriptor bindings are neutralized only during native owner teardown.
+
+The alarm service restores repeating/set-if-stopped behavior, deferred retirement, callback order, wrapped clock input and a blocking native dispatcher. It does not allocate a replacement for the original reserved alarm task. Full boot ownership, exported TLS/completion-handler integration and remaining condition/event/semaphore operations are still incomplete. The default Apple entry remains stopped before AVS completion and does not enter original TEST or gameplay. No original files or server state were changed.

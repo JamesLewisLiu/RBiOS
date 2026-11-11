@@ -7,11 +7,16 @@
 #include <map>
 
 namespace rb {
+class AvsResourcePool;
 // Recovered AVS mutex resource/descriptor ownership. Owner must outlive every
 // descriptor it creates. Destruction requires no holders or waiting threads.
 class AvsMutexes {
 public:
     AvsMutexes(AvsDescriptors &descriptors, uint16_t capacity);
+    // The borrowed original 16-byte resource pool must share this descriptor
+    // service and outlive this owner. Its capacity must fit uint16_t.
+    // Do not reset or externally release this owner's allocated slots.
+    AvsMutexes(AvsDescriptors &descriptors, AvsResourcePool &pool);
     ~AvsMutexes();
     AvsMutexes(const AvsMutexes &) = delete;
     AvsMutexes &operator=(const AvsMutexes &) = delete;
@@ -33,6 +38,7 @@ public:
     size_t available() const;
 private:
     struct Resource {
+        Resource(AvsMutexes *owner, size_t index) : owner(owner), index(index) {}
         AvsMutexes *owner;
         std::shared_ptr<std::recursive_mutex> native;
         uint32_t token = 0;
@@ -41,10 +47,12 @@ private:
         size_t depth = 0;
         size_t index = 0;
         bool closing = false;
+        void *poolSlot = nullptr;
     };
     static int32_t dispose(uintptr_t payload);
     Resource &resource(uint32_t token);
     AvsDescriptors &descriptors_;
+    AvsResourcePool *externalPool_ = nullptr;
     mutable std::mutex poolMutex_;
     std::vector<std::unique_ptr<Resource>> records_;
     std::vector<uint32_t> ownedTokens_;

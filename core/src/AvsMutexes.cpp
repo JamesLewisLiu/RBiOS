@@ -1,17 +1,32 @@
 #include "rb/AvsMutexes.hpp"
+#include "rb/AvsResourcePool.hpp"
 #include <stdexcept>
 #include <system_error>
 
 namespace rb {
+namespace {
+uint16_t externalCapacity(const AvsResourcePool &pool) {
+    if (pool.elementSize() < 16 || pool.capacity() > UINT16_MAX)
+        throw std::invalid_argument("AVS mutex resource pool requires 16-byte elements and a 16-bit capacity");
+    return uint16_t(pool.capacity());
+}
+}
 AvsMutexes::AvsMutexes(AvsDescriptors &descriptors, uint16_t capacity) : descriptors_(descriptors) {
     if (!capacity) throw std::invalid_argument("AVS mutex pool count must be nonzero");
     records_.reserve(capacity);
     free_.reserve(capacity);
     for (uint32_t i = 0; i < capacity; ++i) {
-        records_.push_back(std::make_unique<Resource>(Resource{this, {}}));
-        records_.back()->index = i;
+        records_.push_back(std::make_unique<Resource>(this, i));
         free_.push_back(capacity - i - 1);
     }
+}
+AvsMutexes::AvsMutexes(AvsDescriptors &descriptors, AvsResourcePool &pool)
+    : AvsMutexes(descriptors, externalCapacity(pool)) {
+    uintptr_t payload=0;
+    if (!descriptors.lookup(pool.descriptor(),&payload) || payload!=reinterpret_cast<uintptr_t>(&pool))
+        throw std::invalid_argument("AVS mutex resource pool must belong to the same descriptor service");
+    externalPool_ = &pool;
+    free_.clear();
 }
 AvsMutexes::~AvsMutexes() {
     // Native owner lifetime cleanup, separate from the original 023 operation.
@@ -28,21 +43,31 @@ AvsMutexes::~AvsMutexes() {
 }
 uint32_t AvsMutexes::create() {
     std::lock_guard<std::mutex> lock(poolMutex_);
-    if (!free_.empty()) {
+    if (externalPool_ || !free_.empty()) {
         try { ownedTokens_.reserve(ownedTokens_.size() + 1); }
         catch (const std::bad_alloc &) { return 0; }
-        const auto &record = records_[free_.back()];
+        void *slot = externalPool_ ? externalPool_->allocate() : nullptr;
+        if (externalPool_ && !slot) return 0;
+        const size_t index = externalPool_ ? externalPool_->indexOf(slot) : free_.back();
+        const auto &record = records_[index];
+        const auto abandon = [&] {
+            record->native.reset();
+            if (externalPool_) externalPool_->release(slot);
+        };
         try { record->native = std::make_shared<std::recursive_mutex>(); }
-        catch (const std::system_error &) { return 0; }
-        catch (const std::bad_alloc &) { return 0; }
-        const auto token = descriptors_.allocate(3, dispose, reinterpret_cast<uintptr_t>(record.get()));
-        if (!token) { record->native.reset(); return 0; }
+        catch (const std::system_error &) { abandon(); return 0; }
+        catch (const std::bad_alloc &) { abandon(); return 0; }
+        uint32_t token;
+        try { token = descriptors_.allocate(3, dispose, reinterpret_cast<uintptr_t>(record.get())); }
+        catch (...) { abandon(); throw; }
+        if (!token) { abandon(); return 0; }
+        record->poolSlot = slot;
         record->token = token;
         record->users = 0;
         record->depth = 0;
         record->closing = false;
         ownedTokens_.push_back(token);
-        free_.pop_back();
+        if (!externalPool_) free_.pop_back();
         return token;
     }
     return 0;
@@ -52,7 +77,13 @@ int32_t AvsMutexes::dispose(uintptr_t payload) {
     std::lock_guard<std::mutex> lock(record.owner->poolMutex_);
     if (record.users) throw std::logic_error("AVS mutex cannot be destroyed with holders or waiters");
     record.closing = true;
-    if (record.native) { record.native.reset(); record.owner->free_.push_back(record.index); }
+    if (record.native) {
+        record.native.reset();
+        if (record.owner->externalPool_) {
+            record.owner->externalPool_->release(record.poolSlot);
+            record.poolSlot = nullptr;
+        } else record.owner->free_.push_back(record.index);
+    }
     return 0;
 }
 AvsMutexes::Resource &AvsMutexes::resource(uint32_t token) {
@@ -114,7 +145,7 @@ void AvsMutexes::unlock(uint32_t token) {
 }
 size_t AvsMutexes::available() const {
     std::lock_guard<std::mutex> lock(poolMutex_);
-    return free_.size();
+    return externalPool_ ? externalPool_->freeCount() : free_.size();
 }
 void AvsMutexes::registerCurrentThread(uintptr_t identity) {
     if (!identity) throw std::invalid_argument("AVS thread identity must be nonzero");

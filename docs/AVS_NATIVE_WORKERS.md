@@ -1,10 +1,11 @@
 # Native execution of recovered AVS worker behavior
 
 `AvsNativeWorkerPool` creates real native threads with recovered initial slot
-order, explicit task assignment, completion callback order, expiry, and shutdown.
-It is not the complete original task scheduler. The caller must select an idle
-original worker slot before calling `assign`; the module does not invent a queue,
-load-balancing rule, automatic gameplay task, or successful boot-stage callback.
+order, original checkout/recycling, task assignment, callback order, expiry, and
+shutdown. `checkout` selects a worker using the recovered free, idle and retired
+lists; `assign` executes the supplied original task on that worker. `AvsTasks`
+adds finite task records and type-2 descriptors. Neither construction nor checkout
+executes unsolicited game work or reports the complete bootstrap as ready.
 
 ## Source correspondence
 
@@ -25,6 +26,10 @@ Evidence is retained in the local `original-boot-review` directory in
 | `10041130`, `10041230`, `100418C0` | Execute action, invoke up to four completion callbacks in order, then publish task result |
 | `10041750` | Zero expiry means no usage limit; otherwise decrement after task completion and retire at zero |
 | `10041624`, `10041564`, `100415E0` | Signal stop, join a started worker, and release its native handle |
+| `10041B00`, `10041D80`, `10041470` | Checkout an idle worker, preserve its remaining expiry, update requested priority, or reclaim retired records |
+| `10041500` | Stop an idle worker with state 4 and recreate it for a larger stack when the free list is empty |
+| `10041A90`, `10041AC0` | Return a worker to the idle or retired list using the original list-head order |
+| `1005BFA0`, `1005BFD0` | Decrement and reorder the original affinity ring on retirement/restart |
 
 Initial worker construction arguments are verified from raw stack arguments,
 including values omitted by the decompiler's prototype: worker record, stack
@@ -36,24 +41,27 @@ the pool was constructed.
 ## Native platform behavior
 
 Windows uses `_beginthreadex` with the requested stack size. POSIX uses
-`pthread_create` and `pthread_attr_setstacksize`; rejected native stack sizes
-remain failures. A native condition-variable gate prevents task execution before
+`pthread_create` and `pthread_attr_setstacksize`; a nonzero original request is
+rounded up to the native minimum and page size. The original requested stack is
+retained separately. Other rejected native stack sizes remain failures. A native
+condition-variable gate prevents task execution before
 policy setup and identity registration complete. Construction waits for each
 worker to acknowledge registration, so a failed identity binding cannot be
 reported as an initialized worker.
 
 Windows applies the original relative priority mapping and disables priority
-boost. POSIX supports original priority 2 through normal scheduling; other
-relative priorities explicitly fail because they have no exact mapping here.
+boost. POSIX supports original priority 2 through normal scheduling; other valid
+relative priorities are retained with `priorityApplied=false` because no exact
+mapping is implemented. The source ignores the priority setter return, so an
+unsupported mapping does not fabricate a thread-creation failure.
 Windows and Linux attempt the selected CPU pin. Darwin does not expose an
 equivalent hard CPU pin through this adapter, so `affinityApplied` remains false.
 The original `100396E0` ignores affinity-setting failure; native creation likewise
 continues but makes the outcome inspectable. It does not claim that unsupported
 pinning was applied.
 
-The original Windows priority wrapper also ignores an OS setter failure. This
-native implementation explicitly reports priority failure and unwinds workers,
-which is a deliberate platform error boundary rather than a fabricated success.
+`priorityApplied` and `affinityApplied` describe the OS outcome independently of
+the retained source request. Invalid priorities outside 0 through 4 are rejected.
 
 ## Identity and task lifetime
 
@@ -77,7 +85,12 @@ is native exception containment; it is not an original successful task cleanup
 or a substitute for the task's missing game behavior.
 
 Stop prevents further assignments, signals workers, waits for already executing
-actions, joins threads, and checks native join/handle-close results. A queued
+actions, joins threads, and checks native join/handle-close results. A running
+task may still attempt checkout while draining; the lifecycle lock is released
+before joins so that admission can observe shutdown and fail. A separate shutdown
+lock serializes concurrent stop calls. A deterministic regression releases such
+an admission attempt only after stop publishes the worker's exit state.
+A queued
 action stopped before dispatch receives an explicit cancellation exception.
 Failed joins do not clear `started` or free live worker state. Calling stop from
 one of the pool's own workers is rejected before shutdown state changes. Explicit
@@ -108,11 +121,14 @@ Reports:
 `E:/MBR-2019121100/IDA/RBiOS/.build/original-boot-review/avs-native-workers-final-report.json`
 and the bootstrap policy report described in `AVS_THREAD_BOOTSTRAP.md`.
 
-Original task admission/selection, idle and retired list ownership
-(`10041A90`/`10041AC0`), affinity decrement on retirement, expired-slot recycling,
-future worker creation, task-record allocation, and full thread-context export
-integration remain pending. In particular, `100419A0` enumerates task state; it
-is not a task-submission function. These missing services must be recovered from
-their callers before the complete `1001ABC0`/`10029410` stage can be declared
-ready. The aggregate also initializes mutex, condition, event, semaphore, and
-alarm services; this worker module does not bypass them.
+The additional instruction oracle passes **48 pool configurations and 4,800
+admission/retirement/recycling commands**, comparing actual selected indices,
+worker states, remaining uses, requested stacks/priorities and affinity indices.
+It executes the original list and affinity functions instead of hooking them.
+See `AVS_TASKS.md` for finite task descriptors and the export-091 failure oracle.
+
+Full thread-context export integration and the other `10029410` services remain
+pending. `100419A0` enumerates task state; it is not task submission. The aggregate
+also initializes mutex, condition, event, semaphore and alarm services; this
+worker module does not bypass them. A corrupt idle list that causes original
+`10041D80` to loop forever is reported as an explicit native logic error.

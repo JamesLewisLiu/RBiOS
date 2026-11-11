@@ -58,6 +58,7 @@ Report:
 `E:/MBR-2019121100/IDA/RBiOS/.build/original-boot-review/avs-thread-bootstrap-report.json`.
 
 The Windows process policy change, platform timer setup, original TLS-slot
-allocation, finite task-record allocator, and other `10029410` subsystems are not
+allocation and other `10029410` subsystems are not
 implemented by this plan. See `AVS_NATIVE_WORKERS.md` for real worker creation and
-its remaining integration boundaries.
+its remaining integration boundaries, and `AVS_TASKS.md` for the finite task-record
+allocator, original admission, recycling and affinity release.
