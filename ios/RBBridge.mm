@@ -146,8 +146,8 @@ static std::string path(NSURL *u) {
     return q ? [NSValue valueWithCGPoint:CGPointMake(q->x, q->y)] : nil;
 }
 + (NSString *)migrationStatus {
-    return @"Offline play uses original resources. Scores stay in memory; networking stays disabled. Original pages and AFP "
-           @"animation are still being restored.";
+    return @"Component validation harness. Original AVS2/EA3 boot, game loading and TEST dispatch are not restored. "
+           @"This native page flow is not the original game runtime.";
 }
 @end
 @implementation RBAudioDecoder {

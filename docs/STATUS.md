@@ -1,6 +1,6 @@
 # Current status
 
-Updated 2026-11-11. Implementation, host validation, Apple builds and device play are separate claims. The complete migration is not finished.
+Updated 2026-11-11. Implementation, host validation, Apple builds and device play are separate claims. The complete migration is not finished. The native menu/harness flow does not meet the corrected original-execution requirement and is not the production runtime.
 
 | Area | Implemented or verified | Remaining work |
 | --- | --- | --- |
@@ -36,3 +36,9 @@ The user reported the score/combo build passed their device check on 2026-11-10.
 The sound/rendering increment restores the original local sound selector (16,800 original-instruction comparisons), asks capable displays for up to 120 Hz, and interpolates stable note positions while retaining 60 Hz simulation. Supported stage textures and effects are prepared before play; intermediate input segments no longer construct redundant render snapshots. These changes target source-level first-use and allocation overhead, not a measured guarantee of frame rate. Interpolation adds up to 16.7 ms of visual delay. New device audio, frame-time and alignment checks remain pending. See [STAGE_SOUND](STAGE_SOUND.md) and [RENDER_TIMING](RENDER_TIMING.md).
 
 The user reported the sound/ProMotion build is playable with occasional acceptable stutter on 2026-11-11. This is not a measured 120 fps claim. The menu increment retains that stage timing, releases inactive menu artwork, and renders static menu pages only when changed. Original resources are never converted. The supplied server remains unused; account unlock restrictions are not assumed to be recovered.
+
+## Original-execution correction
+
+The existing Apple app remains a regression harness only. Frozen original art plus newly authored page decisions are excluded from the accepted migration. No replacement bootstrap or successful-service placeholders are introduced. The original startup and TEST behavior must own game creation and mode selection before integration is considered faithful.
+
+New bounded recovery: original TEST record tables/navigation/exit flags, game-entry identity mutations and AVS2 product-mode configuration normalization. These are tested components, not a working AVS boot. See [FIDELITY_AUDIT](FIDELITY_AUDIT.md), [ORIGINAL_BOOT_CHAIN](ORIGINAL_BOOT_CHAIN.md), [ORIGINAL_TEST_MENU](ORIGINAL_TEST_MENU.md) and [AVS_BOOT_CONFIG](AVS_BOOT_CONFIG.md). No live services or NVRAM writers were executed.

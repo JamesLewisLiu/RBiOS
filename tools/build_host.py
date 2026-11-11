@@ -34,7 +34,7 @@ def compile_core(source):
 with ThreadPoolExecutor(max_workers=3) as pool:
     core_objects = list(pool.map(compile_core,sources))
 targets = [('rbtests', 'tests/CoreTests.cpp'), ('rbinspect', 'tools/Inspect.cpp')]
-targets += [('rb'+name.lower(), 'tests/'+name+'Tests.cpp') for name in ('Motion', 'Protocol', 'Score', 'JudgeDispatch', 'Touch', 'CPU', 'Gameplay', 'AFP', 'MusicSheet', 'NoteFrame', 'Route', 'NoteGraphic', 'TouchInput', 'StageScoreInitialization', 'StageSession', 'AfpTimeline', 'StageGraphic', 'LongNoteGraphic', 'OriginalAfpMoviePool', 'GamePresentation', 'StageLongPresentation', 'StageScoreGraphic', 'ScoreDisplay', 'StageLabelGraphic', 'StageSound', 'StageContinuousSound', 'StageContinuousSession', 'MenuSelection', 'MenuPresentation')]
+targets += [('rb'+name.lower(), 'tests/'+name+'Tests.cpp') for name in ('Motion', 'Protocol', 'Score', 'JudgeDispatch', 'Touch', 'CPU', 'Gameplay', 'AFP', 'MusicSheet', 'NoteFrame', 'Route', 'NoteGraphic', 'TouchInput', 'StageScoreInitialization', 'StageSession', 'AfpTimeline', 'StageGraphic', 'LongNoteGraphic', 'OriginalAfpMoviePool', 'GamePresentation', 'StageLongPresentation', 'StageScoreGraphic', 'ScoreDisplay', 'StageLabelGraphic', 'StageSound', 'StageContinuousSound', 'StageContinuousSession', 'MenuSelection', 'MenuPresentation', 'OriginalTestMenu', 'OriginalEntryIdentity', 'AvsBootConfig')]
 for name, source in targets:
     binary = out/(name+('.exe' if sys.platform == 'win32' else ''))
     inputs = [ROOT/source, *core_objects, *sorted((ROOT/'tests').glob('*.hpp'))]

@@ -159,7 +159,7 @@ final class MenuViewController: UIViewController, UITableViewDataSource, UITable
     private func show(_ frame: [String: Any]) {
         surface?.showSessionSprites(frame["sprites"] as? [[String: Any]] ?? [])
         let pending = frame["pending"] as? [String] ?? []
-        let message = pending.isEmpty ? "Offline play - no scores are saved or uploaded" : "Original artwork with native controls. Some original menu elements are still being restored."
+        let message = pending.isEmpty ? "Offline play - no scores are saved or uploaded" : "Component harness only. Original AVS2 startup and scene flow are not restored."
         if status.text != message { status.text = message }
     }
     private func reportArtwork(_ error: Error, token: UUID) {

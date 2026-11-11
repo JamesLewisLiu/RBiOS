@@ -1,5 +1,7 @@
 # RBiOS native migration
 
+> **Recovery status:** The current Apple application is a component-validation harness, not the original game runtime. Its native menu flow is rejected as a migration implementation. Actual AVS2/EA3 boot, game loading, scene ownership and TEST dispatch must be recovered before this can be called a native port of the original game. See [execution audit](docs/FIDELITY_AUDIT.md) and [original boot chain](docs/ORIGINAL_BOOT_CHAIN.md).
+
 Native C++ restoration of REFLEC BEAT MBR:J:A:A:2019121100, with an iPad application targeting iPadOS 14.0 and later. The primary device is an M1 iPad Pro running iPadOS 14.6.
 
 **This is a partial migration.** Offline selection, stage execution, the CPU opponent and session-result code are connected. Windows audits, the macos-15 arm64 archive and 21 Apple simulator tests pass. User-provided iPad screenshots show a completed stage after the viewport correction. Device timing and performance remain unmeasured. Original page scenes, some effects, hit sounds and the complete online client remain unfinished.

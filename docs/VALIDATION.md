@@ -129,3 +129,9 @@ The recovered difficulty controller passes 24,576 original-instruction compariso
 Three original menu pages pass with 195 draws (156 textured, 39 solid), including direct checks of the original title white rectangle. The unchanged stage audit passes four difficulties, 738 sampled frames, 46,765 draws and 194 used textures after preparing all 671 stage textures. These checks establish supported asset parsing and bounded logic; full original page scripts, native page interaction on the device, loop audibility and original-engine pixel parity remain separate.
 
 Simulator coverage adds difficulty availability/debounce/confirmation, native control wiring, result counter mapping and untextured solid-rectangle GPU rendering at every display scale. See the associated Actions run for Apple results; locally generated host results alone do not establish Apple correctness.
+
+## Original execution recovery foundation, 2026-11-11
+
+The replacement page flow is no longer accepted as original-runtime migration. A preserved local branch, `codex/component-harness-c9cf3ae`, identifies the earlier playable harness. Its continued compilation is not evidence of AVS boot.
+
+New bounded original-code comparisons pass: 6,120 TEST navigation/exit-flag cases and both complete menu tables; 512 game-entry identity cases; 256 AVS product-mode cases comparing all 2,528 configuration bytes and correction logs. No scene success, AVS service success, server traffic or NVRAM writes are synthesized. The modules are not wired into a pretend successful bootstrap. Full service initialization, actual TEST subscene dispatch and original gameplay ownership remain outstanding.

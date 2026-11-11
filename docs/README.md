@@ -53,3 +53,10 @@
 | [RENDER_TIMING](RENDER_TIMING.md) | Up to 120 Hz presentation over 60 Hz logic |
 
 Authored documentation, interface strings and comments are English. Original game metadata and assets retain their original encoding and contents.
+
+## Original execution recovery
+
+- [FIDELITY_AUDIT](FIDELITY_AUDIT.md): recovered components versus rejected replacement flow.
+- [ORIGINAL_BOOT_CHAIN](ORIGINAL_BOOT_CHAIN.md): loader, AVS, EA3 and original game entry.
+- [ORIGINAL_TEST_MENU](ORIGINAL_TEST_MENU.md): original tables and decisions; subscenes remain unported.
+- [AVS_BOOT_CONFIG](AVS_BOOT_CONFIG.md): bounded original AVS configuration transformation.
