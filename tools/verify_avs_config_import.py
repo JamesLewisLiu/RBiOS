@@ -65,7 +65,7 @@ def main():
 
     def hook(_u, address, _size, _data):
         sp = u.reg_read(UC_X86_REG_ESP)
-        if address == 0x1000cc40:  # property_node_refer: test property tree boundary
+        if address == 0x1000cc40:  # property_search: test property tree boundary
             _, document, parent, path = struct.unpack('<4I', u.mem_read(sp, 16))
             assert document == 0 and parent == 0x1234
             name = string(path)
@@ -137,7 +137,7 @@ def main():
         'config_sha256': hashlib.sha256(original_config.read_bytes()).hexdigest(),
         'addresses': ['0x10006C80', '0x10006C8C', '0x10006E20', '0x10007160', '0x1000D490', '0x10034000', '0x100340CC', '0x10076C20'],
         'compared': 'All 2528 image bytes; lookup order; 48 defaults; typed overrides, array flags, raw string boundaries; original config fixture',
-        'limits': 'Defaults run original instructions without stubs. Supplied values replace only property_node_refer with a lookup callback to synthetic nodes; original node_read and byte-copy execute. XML parsing, property allocation/path lookup, full boot, filesystem and networking are not executed.'
+        'limits': 'Defaults run original instructions without stubs. Supplied values replace only property_search with a lookup callback to synthetic nodes; original node_read and byte-copy execute. XML parsing, property allocation/path lookup, full boot, filesystem and networking are not executed.'
     }, indent=2) + '\n')
     print(f'PASS {len(cases)} original AVS boot config image comparisons')
 

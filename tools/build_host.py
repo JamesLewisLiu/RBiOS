@@ -17,7 +17,7 @@ common = ['-std=c++17', '-O1', '-Wall', '-Wextra', '-Wpedantic', '-ffp-contract=
 sources = sorted(map(str, (ROOT/'core/src').glob('*.cpp')))
 objects = out/'obj'
 objects.mkdir(exist_ok=True)
-header_identity = b''.join(p.read_bytes() for p in sorted((ROOT/'core/include').rglob('*.hpp')))
+header_identity = b''.join(p.read_bytes() for p in sorted([*(ROOT/'core/include').rglob('*.hpp'), *(ROOT/'core/src').glob('*.inc')]))
 build_identity = repr(compiler+common).encode()+header_identity
 
 def current(target, inputs):
@@ -34,7 +34,7 @@ def compile_core(source):
 with ThreadPoolExecutor(max_workers=3) as pool:
     core_objects = list(pool.map(compile_core,sources))
 targets = [('rbtests', 'tests/CoreTests.cpp'), ('rbinspect', 'tools/Inspect.cpp')]
-targets += [('rb'+name.lower(), 'tests/'+name+'Tests.cpp') for name in ('Motion', 'Protocol', 'Score', 'JudgeDispatch', 'Touch', 'CPU', 'Gameplay', 'AFP', 'MusicSheet', 'NoteFrame', 'Route', 'NoteGraphic', 'TouchInput', 'StageScoreInitialization', 'StageSession', 'AfpTimeline', 'StageGraphic', 'LongNoteGraphic', 'OriginalAfpMoviePool', 'GamePresentation', 'StageLongPresentation', 'StageScoreGraphic', 'ScoreDisplay', 'StageLabelGraphic', 'StageSound', 'StageContinuousSound', 'StageContinuousSession', 'MenuSelection', 'MenuPresentation', 'OriginalTestMenu', 'OriginalEntryIdentity', 'AvsBootConfig', 'AvsConfigImport', 'AvsMount', 'OriginalTestReadiness')]
+targets += [('rb'+name.lower(), 'tests/'+name+'Tests.cpp') for name in ('Motion', 'Protocol', 'Score', 'JudgeDispatch', 'Touch', 'CPU', 'Gameplay', 'AFP', 'MusicSheet', 'NoteFrame', 'Route', 'NoteGraphic', 'TouchInput', 'StageScoreInitialization', 'StageSession', 'AfpTimeline', 'StageGraphic', 'LongNoteGraphic', 'OriginalAfpMoviePool', 'GamePresentation', 'StageLongPresentation', 'StageScoreGraphic', 'ScoreDisplay', 'StageLabelGraphic', 'StageSound', 'StageContinuousSound', 'StageContinuousSession', 'MenuSelection', 'MenuPresentation', 'OriginalTestMenu', 'OriginalEntryIdentity', 'AvsBootConfig', 'AvsConfigImport', 'AvsMount', 'OriginalTestReadiness', 'AvsPath', 'AvsPropertyPath', 'AvsDescriptors', 'AvsDefaultFile', 'CabinetConfigStore', 'AvsXmlMetadata')]
 for name, source in targets:
     binary = out/(name+('.exe' if sys.platform == 'win32' else ''))
     inputs = [ROOT/source, *core_objects, *sorted((ROOT/'tests').glob('*.hpp'))]

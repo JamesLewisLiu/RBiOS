@@ -18,7 +18,7 @@ Updated 2026-11-11. Implementation, host validation, Apple builds and device pla
 | Scores and profiles | Memory only; no database, history or upload queue | Persistence intentionally excluded |
 | Networking | Original fields, selected callbacks, protocol/transport isolation, mocks and configuration | Full EA3 envelope, discovery/card/profile/score flow and URLSession bridge |
 | Embedded server | Lifecycle interface; unavailable without source | Server-source migration |
-| Windows build | Zig C++17 and 36 test programs passed, including AVS configuration/dispatch and TEST wait decisions | Not ARM64/iOS compilation evidence |
+| Windows build | Zig C++17 and 42 test programs passed, including native AVS services and configuration backup/replacement | Not ARM64/iOS compilation evidence |
 | macos-15 Actions | Prior recovery foundation at 4339c4f passed arm64 archive, minimum-OS validation and 37 simulator tests; see Actions for subsequent revisions | Simulator tests do not establish iPadOS 14.6 hardware behavior |
 | M1 / iPadOS 14.6 | User reports installation and provides stage-completion screenshots with corrected field framing | New frame graphics, performance, synchronization and instrumented touch testing |
 | Live server | No probe, login or upload | Offline tests do not establish live compatibility |
@@ -44,3 +44,11 @@ The existing Apple app remains a regression harness only. Frozen original art pl
 New bounded recovery: original TEST record tables/navigation/exit flags, game-entry identity mutations and AVS2 product-mode configuration normalization. These are tested components, not a working AVS boot. See [FIDELITY_AUDIT](FIDELITY_AUDIT.md), [ORIGINAL_BOOT_CHAIN](ORIGINAL_BOOT_CHAIN.md), [ORIGINAL_TEST_MENU](ORIGINAL_TEST_MENU.md) and [AVS_BOOT_CONFIG](AVS_BOOT_CONFIG.md). No live services or NVRAM writers were executed.
 
 The next recovered components are the original 48-field AVS configuration importer, filesystem registration/mount dispatcher and TEST initial wait-state decision. Config import uses decoded properties; text XML and the original property allocator/path resolver remain outstanding. Six filesystem factories and three mount requests retain their original order, but require actual backend implementations. TEST waits only for original status 1; other statuses, including errors, queue the menu exactly as in the DLL. No readiness is fabricated. See [AVS_CONFIG_IMPORT](AVS_CONFIG_IMPORT.md), [filesystem boot](avs-filesystem-boot.md) and [ORIGINAL_TEST_READINESS](ORIGINAL_TEST_READINESS.md).
+
+## Native service implementation increment
+
+The configuration importer now uses recovered property search. New service components implement AVS path normalization/hashes, descriptor allocation/reuse and all four cleanup groups, actual host file reads/seek/stat/close, and XML type/count metadata conversion. CabinetConfigStore provides raw-byte backups and replacement under prop/dev as a platform boundary, exercised only in generated fixture directories. No original config file was modified.
+
+These services are not yet a complete AVS bootstrap. Missing dependencies include full XML content parsing/serialization and property allocation/mutation, the mount registry and other filesystem implementations, thread/heap/time services and their lifecycle, EA3 initialization, original game owners and full scene dispatch. Actual Windows synchronization primitives are adapted to native synchronization; the original mutex-object resource pool remains separate.
+
+The accepted plan now permits service discovery against the supplied server after protocol recovery. Login/registration/score writes still await a selected test identity. The earlier offline-only records describe previous runs; no live networking has been performed by this increment. See [accepted plan](NATIVE_PORT_PLAN.md).

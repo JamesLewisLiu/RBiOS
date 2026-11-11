@@ -51,7 +51,7 @@ boundaries (empty, embedded terminator and full capacity without a terminator).
 All **281 cases passed**, comparing every configuration byte and lookup order.
 
 The defaults-only oracle executes original code without function replacements.
-Override cases replace only path lookup (`property_node_refer`) with a fixture
+Override cases replace only path lookup (`property_search`) with a fixture
 callback. Synthetic original node layouts feed the original `property_node_read`
 and copy routines. The lookup order is checked against the original table.
 This distinguishes verified import behavior from the unported property allocator

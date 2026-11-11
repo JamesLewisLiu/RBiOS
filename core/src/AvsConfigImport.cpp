@@ -1,4 +1,5 @@
 #include "rb/AvsConfigImport.hpp"
+#include "rb/AvsPropertyPath.hpp"
 #include <algorithm>
 #include <cstring>
 
@@ -54,23 +55,16 @@ constexpr std::array<AvsConfigField, 48> fields{{
     {7, 84, 4, "thread/pool/expire_count", 100ull, nullptr},
     {5, 88, 2, "thread/pool/init_thread", 8ull, nullptr},
 }};
-const Property *find(const Property *node, const std::string &path) {
-    size_t begin = 0;
-    while (node) {
-        const auto end = path.find('/', begin);
-        node = node->child(path.substr(begin, end == std::string::npos ? end : end - begin));
-        if (end == std::string::npos) return node;
-        begin = end + 1;
-    }
-    return nullptr;
-}
 } // namespace
 const std::array<AvsConfigField, 48> &avsBootConfigFields() { return fields; }
 AvsBootConfigImage importAvsBootConfig(const Property *config) {
     if (config && config->name != "config") throw Error("AVS boot: bad configuration root name");
     AvsBootConfigImage image{};
     for (const auto &field : fields) {
-        const auto *node = find(config, field.path);
+        const auto reference = config ? referAvsProperty(*config, field.path) : AvsPropertyReference{};
+        if (reference.error != AvsPathError::none || reference.attribute)
+            throw Error(std::string("AVS boot: property path failed at ") + field.path);
+        const auto *node = reference.node;
         auto destination = image.begin() + field.offset;
         if (!node) {
             if (field.defaultString) {

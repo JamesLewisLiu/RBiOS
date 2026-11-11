@@ -723,5 +723,27 @@
       "No full AVS/game boot, server connection or NVRAM write",
       "No new device verification"
     ]
+  },
+  "avs_native_services": {
+    "date": "2026-11-11",
+    "status": "passed",
+    "host_test_programs": 42,
+    "python_tests": 9,
+    "file_path_instruction_cases": 3401,
+    "property_parser_cases": 533,
+    "property_full_lookup_cases": 20,
+    "descriptor_instruction_commands": 18244,
+    "descriptor_bulk_cleanup_calls": 768,
+    "real_host_vector_read_cases": 400,
+    "xml_metadata_instruction_cases": 803,
+    "config_import_after_search_integration": 281,
+    "cabinet_storage": "Generated fixture only: raw bytes, first backup retention, replacement and failure boundaries",
+    "limits": [
+      "Full XML parser/serializer and property mutation not implemented",
+      "Mount registry, other filesystems and original generic write callbacks not implemented",
+      "Thread/heap/time/EA3 and game scene owners remain incomplete",
+      "CabinetConfigStore is platform code, not recovered serialization or original write triggers",
+      "No original resource writes, new device testing or live server traffic"
+    ]
   }
 }

@@ -64,3 +64,12 @@ Authored documentation, interface strings and comments are English. Original gam
 - [AVS_CONFIG_IMPORT](AVS_CONFIG_IMPORT.md): original 48-field configuration map, defaults and supported typed import.
 - [Filesystem boot](avs-filesystem-boot.md): original registration/mount ordering and explicit backend boundary.
 - [ORIGINAL_TEST_READINESS](ORIGINAL_TEST_READINESS.md): original TEST wait-state decisions and EA3 call boundary.
+
+- [Accepted complete port plan](NATIVE_PORT_PLAN.md): execution order and updated storage/network decisions.
+- [AVS descriptors](AVS_DESCRIPTORS.md): original token allocation and cleanup groups.
+- [AVS property paths](AVS_PROPERTY_PATH.md): original query grammar and node lookup.
+- [AVS file paths](avs-path-resolution.md): original normalization and prefix hashes.
+- [Default filesystem reads](avs-default-file.md): actual host reads and remaining mount ownership.
+- [Cabinet configuration writes](CABINET_CONFIG_STORE.md): backup and replacement platform boundary.
+
+- [AVS XML metadata](AVS_XML_METADATA.md): original type aliases and count/size conversion.
