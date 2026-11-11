@@ -18,8 +18,8 @@ Updated 2026-11-11. Implementation, host validation, Apple builds and device pla
 | Scores and profiles | Memory only; no database, history or upload queue | Persistence intentionally excluded |
 | Networking | Original fields, selected callbacks, protocol/transport isolation, mocks and configuration | Full EA3 envelope, discovery/card/profile/score flow and URLSession bridge |
 | Embedded server | Lifecycle interface; unavailable without source | Server-source migration |
-| Windows build | Zig C++17 and 30 test programs passed | Not ARM64/iOS compilation evidence |
-| macos-15 Actions | Xcode 16.4 arm64 archive, minimum-OS validation and 32 simulator tests passed at b3a5dc1, including interpolation and effect buffering | Simulator tests do not establish iPadOS 14.6 hardware behavior |
+| Windows build | Zig C++17 and 36 test programs passed, including AVS configuration/dispatch and TEST wait decisions | Not ARM64/iOS compilation evidence |
+| macos-15 Actions | Prior recovery foundation at 4339c4f passed arm64 archive, minimum-OS validation and 37 simulator tests; see Actions for subsequent revisions | Simulator tests do not establish iPadOS 14.6 hardware behavior |
 | M1 / iPadOS 14.6 | User reports installation and provides stage-completion screenshots with corrected field framing | New frame graphics, performance, synchronization and instrumented touch testing |
 | Live server | No probe, login or upload | Offline tests do not establish live compatibility |
 
@@ -42,3 +42,5 @@ The user reported the sound/ProMotion build is playable with occasional acceptab
 The existing Apple app remains a regression harness only. Frozen original art plus newly authored page decisions are excluded from the accepted migration. No replacement bootstrap or successful-service placeholders are introduced. The original startup and TEST behavior must own game creation and mode selection before integration is considered faithful.
 
 New bounded recovery: original TEST record tables/navigation/exit flags, game-entry identity mutations and AVS2 product-mode configuration normalization. These are tested components, not a working AVS boot. See [FIDELITY_AUDIT](FIDELITY_AUDIT.md), [ORIGINAL_BOOT_CHAIN](ORIGINAL_BOOT_CHAIN.md), [ORIGINAL_TEST_MENU](ORIGINAL_TEST_MENU.md) and [AVS_BOOT_CONFIG](AVS_BOOT_CONFIG.md). No live services or NVRAM writers were executed.
+
+The next recovered components are the original 48-field AVS configuration importer, filesystem registration/mount dispatcher and TEST initial wait-state decision. Config import uses decoded properties; text XML and the original property allocator/path resolver remain outstanding. Six filesystem factories and three mount requests retain their original order, but require actual backend implementations. TEST waits only for original status 1; other statuses, including errors, queue the menu exactly as in the DLL. No readiness is fabricated. See [AVS_CONFIG_IMPORT](AVS_CONFIG_IMPORT.md), [filesystem boot](avs-filesystem-boot.md) and [ORIGINAL_TEST_READINESS](ORIGINAL_TEST_READINESS.md).

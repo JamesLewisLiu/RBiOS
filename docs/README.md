@@ -60,3 +60,7 @@ Authored documentation, interface strings and comments are English. Original gam
 - [ORIGINAL_BOOT_CHAIN](ORIGINAL_BOOT_CHAIN.md): loader, AVS, EA3 and original game entry.
 - [ORIGINAL_TEST_MENU](ORIGINAL_TEST_MENU.md): original tables and decisions; subscenes remain unported.
 - [AVS_BOOT_CONFIG](AVS_BOOT_CONFIG.md): bounded original AVS configuration transformation.
+
+- [AVS_CONFIG_IMPORT](AVS_CONFIG_IMPORT.md): original 48-field configuration map, defaults and supported typed import.
+- [Filesystem boot](avs-filesystem-boot.md): original registration/mount ordering and explicit backend boundary.
+- [ORIGINAL_TEST_READINESS](ORIGINAL_TEST_READINESS.md): original TEST wait-state decisions and EA3 call boundary.

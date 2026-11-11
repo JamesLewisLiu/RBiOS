@@ -705,5 +705,23 @@
       "Animated transitions and course/life variants pending",
       "New labels require device confirmation"
     ]
+  },
+  "avs_import_mount_test_wait": {
+    "date": "2026-11-11",
+    "status": "passed",
+    "host_test_programs": 36,
+    "python_tests": 9,
+    "config_original_instruction_cases": 281,
+    "filesystem_original_instruction_cases": 960,
+    "test_wait_original_instruction_cases": 7698,
+    "decompiler": "Official Hex-Rays IDA MCP Server 20261028.0.3",
+    "integration": "Typed properties to config image, product correction and mount request capture; no intervening services executed",
+    "limits": [
+      "XML parser, property allocator and path-query semantics remain unported",
+      "Filesystem factory/service implementations are abstract boundaries",
+      "EA3 TEST operations and scene transition owner remain unported",
+      "No full AVS/game boot, server connection or NVRAM write",
+      "No new device verification"
+    ]
   }
 }

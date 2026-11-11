@@ -4,7 +4,7 @@
 
 Native C++ restoration of REFLEC BEAT MBR:J:A:A:2019121100, with an iPad application targeting iPadOS 14.0 and later. The primary device is an M1 iPad Pro running iPadOS 14.6.
 
-**This is a partial migration.** Offline selection, stage execution, the CPU opponent and session-result code are connected. Windows audits, the macos-15 arm64 archive and 21 Apple simulator tests pass. User-provided iPad screenshots show a completed stage after the viewport correction. Device timing and performance remain unmeasured. Original page scenes, some effects, hit sounds and the complete online client remain unfinished.
+**This is a partial recovery.** The harness connects offline selection, stage execution, the CPU opponent and session results. User-provided iPad screenshots show a completed harness stage; device timing and performance remain unmeasured. AVS bootstrap components and TEST decisions are being restored with original-instruction comparisons. Complete startup, original page scenes and the online client remain unfinished. Build and test evidence is recorded separately in [validation](docs/VALIDATION.md).
 
 ## Documentation
 

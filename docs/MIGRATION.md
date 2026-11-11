@@ -72,3 +72,13 @@ ViewportTransform, UIKit, Metal, SpriteKit, AVAudioEngine and NetworkTransport a
 Local persistence is intentionally excluded. UIKit entry or mocked responses are never used to claim completion of missing original behavior.
 
 The 2026-11-11 menu increment maps `0x1011A170`/`0x1011A380`/`0x100ADBD0` to [MenuSelection](MENU_SELECTION.md), `0x100C5EF0` and original AFP placements to [MenuPresentation](MENU_PRESENTATION.md), and the remaining held-note collection/lifecycle portions of `0x10160620`/`0x10163CE0` to [StageContinuousSound](STAGE_CONTINUOUS_SOUND.md). All fresh decompilation used the Official IDA MCP Server. Offline chart availability is an adapter policy, not recovered server entitlement behavior.
+
+## AVS configuration, filesystem dispatch and TEST readiness
+
+| Original module and address | Native component | Recovery boundary |
+| --- | --- | --- |
+| AVS 0x10076C20 table; 0x10013A70 / 0x10006C8C / 0x10006E20 / 0x10007160 | AvsConfigImport | 48 records, defaults and supported typed property import; text XML parsing remains outside this component |
+| AVS 0x10013E00 / 0x10013FA0 / 0x10014010 | AvsMount | Registration/mount dispatch and failure branches; actual filesystem services require an explicit backend |
+| Game 0x100D5710 / 0x100A1610 | OriginalTestReadiness | EA3 call order, status classification and queue decision; EA3 operations and scene ownership remain unported |
+
+The data-contract test passes a decoded property tree through import, product-mode correction and filesystem request capture. This connects component representations only; it does not execute the omitted AVS boot stages. Original addresses identify x86 evidence, never ARM64 pointers. See the linked component guides in the [documentation index](README.md).
