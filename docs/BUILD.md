@@ -48,6 +48,12 @@ The generator discovers all core sources, Apple adapters and XCTest files. CMake
 
 Keep analysis dependencies in .tools, caches in .cache and outputs in .build. Do not commit game data, analysis binaries or decoded media. Swift/Objective-C++ and SDK diagnostics require an actual Apple build.
 
+## Current runtime entry
+
+The Release package currently opens original startup preparation and reports the unrecovered AVS thread-bootstrap boundary. It does not enter TEST or gameplay. Resource selection requires the original modules/reflecbeat.dll and prop/avs-config.xml under the same selected directory. This package is for recovery diagnostics, not a completed game build.
+
+For component regression work, run a Debug build from Xcode with --component-harness in the scheme launch arguments. That explicit route is not compiled as a selectable Release entry and is not evidence of recovered original menus.
+
 ## TrollStore sharing
 
 Download `RBiOS-unsigned.tipa` from the build artifact, extract it from the GitHub artifact ZIP, then share the TIPA file to TrollStore on the iPad. The IPA remains available for other installation workflows. Both files contain the same app and original-resource import behavior; TIPA is an additional file extension, not a resource conversion. TrollStore routes both extensions through the same [installation handler](https://github.com/opa334/TrollStore/blob/main/TrollStore/TSSceneDelegate.m).

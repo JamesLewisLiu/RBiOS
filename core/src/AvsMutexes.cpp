@@ -143,4 +143,17 @@ void AvsMutexes::unregisterCurrentThread() {
             throw std::logic_error("AVS thread still owns a mutex");
     registrations_.erase(current);
 }
+size_t AvsMutexes::releaseCurrentThreadLocksAfterFailure() {
+    std::lock_guard<std::mutex> lock(poolMutex_);
+    const auto current = std::this_thread::get_id();
+    size_t released = 0;
+    for (const auto &record : records_) {
+        if (record->holder != current) continue;
+        while (record->depth) {
+            record->native->unlock();
+            --record->depth; --record->users; ++released;
+        }
+    }
+    return released;
+}
 } // namespace rb

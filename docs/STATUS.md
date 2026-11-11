@@ -18,8 +18,8 @@ Updated 2026-11-12. Implementation, host validation, Apple builds and device pla
 | Scores and profiles | Memory only; no database, history or upload queue | Persistence intentionally excluded |
 | Networking | Original fields, selected callbacks, protocol/transport isolation, mocks and configuration | Full EA3 envelope, discovery/card/profile/score flow and URLSession bridge |
 | Embedded server | Lifecycle interface; unavailable without source | Server-source migration |
-| Windows build | Zig C++17 and 47 test programs passed, including native AVS services and configuration backup/replacement | Not ARM64/iOS compilation evidence |
-| macos-15 Actions | Prior recovery foundation at 4339c4f passed arm64 archive, minimum-OS validation and 37 simulator tests; see Actions for subsequent revisions | Simulator tests do not establish iPadOS 14.6 hardware behavior |
+| Windows build | Zig C++17 and 49 test programs passed, including native AVS services and configuration backup/replacement | Not ARM64/iOS compilation evidence |
+| macos-15 Actions | Startup preparation at bb19e63 passed arm64 archive, minimum-OS validation and 48 simulator tests; see Actions for subsequent revisions | Simulator tests do not establish iPadOS 14.6 hardware behavior |
 | M1 / iPadOS 14.6 | User reports installation and provides stage-completion screenshots with corrected field framing | New frame graphics, performance, synchronization and instrumented touch testing |
 | Live server | No probe, login or upload | Offline tests do not establish live compatibility |
 
@@ -58,3 +58,7 @@ The accepted plan now permits service discovery against the supplied server afte
 The default entry reads the selected original DLL/configuration, builds the AVS configuration image, allocates launcher heap buffers and the descriptor pool, and reports the incomplete 0x10029410 thread bootstrap. It does not enter EA3, TEST or a game scene. Logging/filtering and other AVS services also remain incomplete. This is an explicitly stopped recovery build, not a playable original runtime. The component harness requires the --component-harness argument in Debug builds.
 
 Bounded services now include XML event-to-property decoding, recursive mutex resource ownership, calling-thread TLS/priority, concrete read-only mount lookup and the original default-fs option parser. Tests cover real native reads and synchronization; none supplies successful missing boot services. Full worker/bootstrap initialization, property serialization, remaining filesystem backends, EA3 and original scene owners remain outstanding. Original resources/configs were not changed and no server was contacted.
+
+## Native worker lifecycle, 2026-11-12
+
+Bootstrap configuration now retains original stack/count adjustments, arena accounting and CPU-affinity selection. Native worker code creates real threads, waits for explicit selected-slot assignment, invokes the original four completion callbacks in order, tracks expiry and joins on shutdown. Native failures do not report successful task completion. Task admission, idle/retired list ownership, recycling, unified TLS exports and condition/event/semaphore/alarm services remain unfinished, so the default startup stop is unchanged. See [worker evidence and limits](AVS_NATIVE_WORKERS.md).

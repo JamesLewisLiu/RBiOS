@@ -55,6 +55,13 @@ different native thread, missing registration, or destruction with holders or
 waiters reports an explicit error instead of invoking native undefined behavior.
 Resource destruction must be externally sequenced after all users are quiescent.
 
+`releaseCurrentThreadLocksAfterFailure` is a separate native exception-containment
+operation used by recovered worker execution. It releases only mutex recursion
+owned by the calling native thread, on that thread, so a failed task can retire
+without stranding locks. It does not release another thread's locks or change a
+failed task into a successful one. The original mutex export API does not imply
+this operation; it is explicitly a host failure boundary.
+
 `AvsDescriptors` currently retains its own native recursive synchronization
 adapter. The exported descriptor-service mutex resource exists with real
 ownership, but the two locks are not yet connected into the complete original

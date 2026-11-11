@@ -26,6 +26,9 @@ public:
     void unlock(uint32_t token);
     void registerCurrentThread(uintptr_t originalThreadIdentity);
     void checkCurrentThreadCanUnregister() const;
+    // Native exception containment only. Releases locks held by the calling
+    // thread; never changes another thread's ownership or reports task success.
+    size_t releaseCurrentThreadLocksAfterFailure();
     void unregisterCurrentThread();
     size_t available() const;
 private:

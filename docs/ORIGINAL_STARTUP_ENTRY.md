@@ -15,7 +15,7 @@ This Release build intentionally stops before the game. It replaces the misleadi
 ## Other recovered services in this increment
 
 - XML event-to-property conversion covers the actual original AVS config; full original comparisons include complete trees and errors. Serialization and other content types remain unfinished.
-- Real mutex resources and calling-thread TLS registration have explicit ownership, error and completion behavior. Worker-pool initialization remains unfinished.
+- Real mutex resources and calling-thread TLS registration have explicit ownership, error and completion behavior. Native initial-worker creation and task execution are now implemented independently; full task admission/recycling and aggregate initialization remain unfinished.
 - A concrete read-only fs mount registry resolves virtual paths, holds busy references during file access, and preserves mount options, including ignored nvram-specific keys in the original fs parser. Full addfs callbacks and other filesystem types remain unfinished.
 
 These components are independently tested but are not invoked out of the original boot order to move the startup screen forward. Original resources and configs remain unchanged in this increment; no server or public SNTP endpoint is contacted.

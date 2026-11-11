@@ -79,3 +79,6 @@ Authored documentation, interface strings and comments are English. Original gam
 - [AVS mutexes](AVS_MUTEXES.md): real native resources and descriptor lifetime.
 - [AVS thread context](AVS_THREAD_CONTEXT.md): registered calling-thread TLS and remaining worker initialization.
 - [AVS mount registry](avs-mount-registry.md): read-only fs mounting and original option parser.
+
+- [AVS thread bootstrap policy](AVS_THREAD_BOOTSTRAP.md): original stack, count, arena and affinity calculations.
+- [AVS native workers](AVS_NATIVE_WORKERS.md): real worker lifecycle and remaining admission/recycling dependencies.
