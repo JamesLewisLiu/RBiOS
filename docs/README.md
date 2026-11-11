@@ -73,3 +73,9 @@ Authored documentation, interface strings and comments are English. Original gam
 - [Cabinet configuration writes](CABINET_CONFIG_STORE.md): backup and replacement platform boundary.
 
 - [AVS XML metadata](AVS_XML_METADATA.md): original type aliases and count/size conversion.
+
+- [Original startup entry](ORIGINAL_STARTUP_ENTRY.md): default entry, executed prefix and explicit stop.
+- [AVS XML properties](AVS_XML_PROPERTY.md): original typed XML event semantics.
+- [AVS mutexes](AVS_MUTEXES.md): real native resources and descriptor lifetime.
+- [AVS thread context](AVS_THREAD_CONTEXT.md): registered calling-thread TLS and remaining worker initialization.
+- [AVS mount registry](avs-mount-registry.md): read-only fs mounting and original option parser.

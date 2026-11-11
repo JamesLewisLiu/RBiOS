@@ -745,5 +745,23 @@
       "CabinetConfigStore is platform code, not recovered serialization or original write triggers",
       "No original resource writes, new device testing or live server traffic"
     ]
+  },
+  "avs_startup_prefix": {
+    "date": "2026-11-12",
+    "host_test_programs": 47,
+    "xml_documents": 56,
+    "xml_successful_trees": 42,
+    "mutex_commands": 2004,
+    "main_thread_priorities": 5,
+    "mount_mapping_cases": 500,
+    "mount_option_cases": 1259,
+    "apple_validation": "pending Actions",
+    "default_entry": "Original startup preparation; stops at incomplete AVS 0x10029410",
+    "limits": [
+      "Full thread bootstrap and logging/filtering remain incomplete",
+      "No EA3/game/TEST scene entered",
+      "No original configuration/resource writes or server traffic",
+      "No device verification"
+    ]
   }
 }

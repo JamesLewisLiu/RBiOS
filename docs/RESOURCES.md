@@ -43,3 +43,7 @@ Images and PCM are created only in memory. Audio is decoded in blocks for AVAudi
 rbinspect GAME_ROOT audits PLY/IFS/SD9/2dx without writing PNG, WAV or replacement packages. [VALIDATION](VALIDATION.md) records coverage.
 
 python -B tools/hash_original.py creates a local snapshot and refuses to overwrite it. Add --verify to check the file set, sizes and SHA-256. The current 4,834-file snapshot was created during implementation; it is not a pre-session baseline.
+
+## Original startup recovery entry
+
+The default entry additionally requires the unchanged prop/avs-config.xml next to data/ and modules/. It verifies modules/reflecbeat.dll before parsing the configuration. Do not copy only data/ and the DLL for this route. The current startup stops at an unrecovered thread dependency; successful import does not enter the game. Other resource formats remain unchanged. See [startup entry](ORIGINAL_STARTUP_ENTRY.md).

@@ -149,3 +149,9 @@ Original comparisons passed: 3,401 file-path normalization/hash cases without ho
 Cabinet configuration tests write only generated fixtures beside the host executable. They verify first-version backup retention, byte-preserving replacement, missing directories, disallowed paths and failure before replacement when backup storage is unavailable. These are native storage-policy tests, not original XML serialization evidence. No original resources or configuration were changed. Complete boot, device startup and live server compatibility remain pending.
 
 Final Windows service build passed all 42 C++ test programs and nine Python tests. Apple/ARM64 build results belong to the corresponding Actions revision and remain separate from these local checks.
+
+## Original startup prefix and concrete service dependencies, 2026-11-12
+
+All 47 Windows C++ test programs pass. Original-instruction comparisons pass for 56 complete XML documents (42 trees and 14 rejected inputs), 2,004 mutex ownership commands, five main-thread priority inputs, 500 mount/path mappings and 1,259 mount option strings. The XML oracle executes original property_create and insert_read, substituting only its input reader; original configuration and CP932 bytes are included. Other component guides record OS callback substitutions and unsupported boundaries.
+
+Apple tests cover the new startup adapter and root selection. Apple results are pending the current Actions build and are not inferred from Windows tests. The default runtime deliberately stops at the incomplete thread bootstrap. Neither this prefix nor independent service checks establish AVS initialization, original TEST, device play or live network compatibility.

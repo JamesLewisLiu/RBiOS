@@ -1,6 +1,6 @@
 # Current status
 
-Updated 2026-11-11. Implementation, host validation, Apple builds and device play are separate claims. The complete migration is not finished. The native menu/harness flow does not meet the corrected original-execution requirement and is not the production runtime.
+Updated 2026-11-12. Implementation, host validation, Apple builds and device play are separate claims. The complete migration is not finished. The native menu/harness flow does not meet the corrected original-execution requirement and is not the production runtime.
 
 | Area | Implemented or verified | Remaining work |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ Updated 2026-11-11. Implementation, host validation, Apple builds and device pla
 | Scores and profiles | Memory only; no database, history or upload queue | Persistence intentionally excluded |
 | Networking | Original fields, selected callbacks, protocol/transport isolation, mocks and configuration | Full EA3 envelope, discovery/card/profile/score flow and URLSession bridge |
 | Embedded server | Lifecycle interface; unavailable without source | Server-source migration |
-| Windows build | Zig C++17 and 42 test programs passed, including native AVS services and configuration backup/replacement | Not ARM64/iOS compilation evidence |
+| Windows build | Zig C++17 and 47 test programs passed, including native AVS services and configuration backup/replacement | Not ARM64/iOS compilation evidence |
 | macos-15 Actions | Prior recovery foundation at 4339c4f passed arm64 archive, minimum-OS validation and 37 simulator tests; see Actions for subsequent revisions | Simulator tests do not establish iPadOS 14.6 hardware behavior |
 | M1 / iPadOS 14.6 | User reports installation and provides stage-completion screenshots with corrected field framing | New frame graphics, performance, synchronization and instrumented touch testing |
 | Live server | No probe, login or upload | Offline tests do not establish live compatibility |
@@ -39,11 +39,11 @@ The user reported the sound/ProMotion build is playable with occasional acceptab
 
 ## Original-execution correction
 
-The existing Apple app remains a regression harness only. Frozen original art plus newly authored page decisions are excluded from the accepted migration. No replacement bootstrap or successful-service placeholders are introduced. The original startup and TEST behavior must own game creation and mode selection before integration is considered faithful.
+The previous Apple menu/game flow remains a regression harness only. The default entry now runs recovered startup preparation and stops at the incomplete AVS thread bootstrap; Release no longer opens the harness. See [startup entry](ORIGINAL_STARTUP_ENTRY.md). Frozen original art plus newly authored page decisions are excluded from the accepted migration. No replacement bootstrap or successful-service placeholders are introduced. The original startup and TEST behavior must own game creation and mode selection before integration is considered faithful.
 
 New bounded recovery: original TEST record tables/navigation/exit flags, game-entry identity mutations and AVS2 product-mode configuration normalization. These are tested components, not a working AVS boot. See [FIDELITY_AUDIT](FIDELITY_AUDIT.md), [ORIGINAL_BOOT_CHAIN](ORIGINAL_BOOT_CHAIN.md), [ORIGINAL_TEST_MENU](ORIGINAL_TEST_MENU.md) and [AVS_BOOT_CONFIG](AVS_BOOT_CONFIG.md). No live services or NVRAM writers were executed.
 
-The next recovered components are the original 48-field AVS configuration importer, filesystem registration/mount dispatcher and TEST initial wait-state decision. Config import uses decoded properties; text XML and the original property allocator/path resolver remain outstanding. Six filesystem factories and three mount requests retain their original order, but require actual backend implementations. TEST waits only for original status 1; other statuses, including errors, queue the menu exactly as in the DLL. No readiness is fabricated. See [AVS_CONFIG_IMPORT](AVS_CONFIG_IMPORT.md), [filesystem boot](avs-filesystem-boot.md) and [ORIGINAL_TEST_READINESS](ORIGINAL_TEST_READINESS.md).
+The next recovered components are the original 48-field AVS configuration importer, filesystem registration/mount dispatcher and TEST initial wait-state decision. Config import uses decoded properties. Subsequent increments below add bounded XML import and original path lookup; full property allocation/mutation remains outstanding. Six filesystem factories and three mount requests retain their original order, but require actual backend implementations. TEST waits only for original status 1; other statuses, including errors, queue the menu exactly as in the DLL. No readiness is fabricated. See [AVS_CONFIG_IMPORT](AVS_CONFIG_IMPORT.md), [filesystem boot](avs-filesystem-boot.md) and [ORIGINAL_TEST_READINESS](ORIGINAL_TEST_READINESS.md).
 
 ## Native service implementation increment
 
@@ -52,3 +52,9 @@ The configuration importer now uses recovered property search. New service compo
 These services are not yet a complete AVS bootstrap. Missing dependencies include full XML content parsing/serialization and property allocation/mutation, the mount registry and other filesystem implementations, thread/heap/time services and their lifecycle, EA3 initialization, original game owners and full scene dispatch. Actual Windows synchronization primitives are adapted to native synchronization; the original mutex-object resource pool remains separate.
 
 The accepted plan now permits service discovery against the supplied server after protocol recovery. Login/registration/score writes still await a selected test identity. The earlier offline-only records describe previous runs; no live networking has been performed by this increment. See [accepted plan](NATIVE_PORT_PLAN.md).
+
+## Original startup preparation, 2026-11-12
+
+The default entry reads the selected original DLL/configuration, builds the AVS configuration image, allocates launcher heap buffers and the descriptor pool, and reports the incomplete 0x10029410 thread bootstrap. It does not enter EA3, TEST or a game scene. Logging/filtering and other AVS services also remain incomplete. This is an explicitly stopped recovery build, not a playable original runtime. The component harness requires the --component-harness argument in Debug builds.
+
+Bounded services now include XML event-to-property decoding, recursive mutex resource ownership, calling-thread TLS/priority, concrete read-only mount lookup and the original default-fs option parser. Tests cover real native reads and synchronization; none supplies successful missing boot services. Full worker/bootstrap initialization, property serialization, remaining filesystem backends, EA3 and original scene owners remain outstanding. Original resources/configs were not changed and no server was contacted.

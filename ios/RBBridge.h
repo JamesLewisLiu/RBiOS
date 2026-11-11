@@ -1,5 +1,13 @@
 #import <UIKit/UIKit.h>
 NS_ASSUME_NONNULL_BEGIN
+@interface RBOriginalStartup : NSObject
++ (nullable NSData *)propertyDocumentDataFromXML:(NSData *)xml error:(NSError **)error
+    NS_SWIFT_NAME(propertyDocumentData(xml:));
++ (nullable NSData *)configurationImageFromXML:(NSData *)xml error:(NSError **)error
+    NS_SWIFT_NAME(configurationImage(xml:));
+- (nullable NSDictionary<NSString *, id> *)startAtRoot:(NSURL *)root error:(NSError **)error
+    NS_SWIFT_NAME(start(at:));
+@end
 @interface RBBridge : NSObject
 + (nullable NSArray<NSDictionary<NSString *, id> *> *)catalogAt:(NSURL *)root
                                                           error:(NSError **)error

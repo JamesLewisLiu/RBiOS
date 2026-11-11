@@ -49,6 +49,7 @@ for target in ['project','app','test']:
     for mode in ['Debug','Release']:
         settings = dict(common)
         settings['OTHER_CPLUSPLUSFLAGS'] = ['$(inherited)', '-ffp-contract=off']
+        settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = ['DEBUG'] if mode == 'Debug' else []
         settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if mode=='Debug' else '-O','GCC_OPTIMIZATION_LEVEL':'0' if mode=='Debug' else '2','DEBUG_INFORMATION_FORMAT':'dwarf','ENABLE_TESTABILITY':'YES' if mode=='Debug' else 'NO'})
         if target=='app':settings.update({'PRODUCT_BUNDLE_IDENTIFIER':'org.rbios.native','INFOPLIST_FILE':'ios/Info.plist','SWIFT_OBJC_BRIDGING_HEADER':'ios/RBiOS-Bridging-Header.h','LD_RUNPATH_SEARCH_PATHS':['$(inherited)','@executable_path/Frameworks']})
         if target=='test':settings.update({'PRODUCT_BUNDLE_IDENTIFIER':'org.rbios.native.tests','GENERATE_INFOPLIST_FILE':'YES','SWIFT_OBJC_BRIDGING_HEADER':'ios/RBiOS-Bridging-Header.h','TEST_HOST':'$(BUILT_PRODUCTS_DIR)/RBiOS.app/RBiOS','BUNDLE_LOADER':'$(TEST_HOST)','LD_RUNPATH_SEARCH_PATHS':['$(inherited)','@executable_path/Frameworks','@loader_path/Frameworks']})

@@ -69,7 +69,7 @@ ViewportTransform, UIKit, Metal, SpriteKit, AVAudioEngine and NetworkTransport a
 - EA3 envelope/negotiation, discovery/card handling, account lifecycle, complete read/write and score submission.
 - Apple compilation, ARM64 floating-point behavior, real touch/audio synchronization, pixels and performance.
 
-Local persistence is intentionally excluded. UIKit entry or mocked responses are never used to claim completion of missing original behavior.
+Score/profile/history persistence is intentionally excluded; cabinet configuration backup/write permission is a separate platform boundary. UIKit entry or mocked responses are never used to claim completion of missing original behavior.
 
 The 2026-11-11 menu increment maps `0x1011A170`/`0x1011A380`/`0x100ADBD0` to [MenuSelection](MENU_SELECTION.md), `0x100C5EF0` and original AFP placements to [MenuPresentation](MENU_PRESENTATION.md), and the remaining held-note collection/lifecycle portions of `0x10160620`/`0x10163CE0` to [StageContinuousSound](STAGE_CONTINUOUS_SOUND.md). All fresh decompilation used the Official IDA MCP Server. Offline chart availability is an adapter policy, not recovered server entitlement behavior.
 
@@ -82,3 +82,15 @@ The 2026-11-11 menu increment maps `0x1011A170`/`0x1011A380`/`0x100ADBD0` to [Me
 | Game 0x100D5710 / 0x100A1610 | OriginalTestReadiness | EA3 call order, status classification and queue decision; EA3 operations and scene ownership remain unported |
 
 The data-contract test passes a decoded property tree through import, product-mode correction and filesystem request capture. This connects component representations only; it does not execute the omitted AVS boot stages. Original addresses identify x86 evidence, never ARM64 pointers. See the linked component guides in the [documentation index](README.md).
+
+## Native startup dependencies, 2026-11-12
+
+| Original module and address | Native component | Recovery boundary |
+| --- | --- | --- |
+| AVS 0x1000B180 / 0x10035FD0 / 0x10035F90 | AvsXmlProperty | Original configuration types, arrays and encoded values; platform XML tokenization, unsupported types rejected |
+| AVS 0x10022AB0 / 0x10022B30 / 0x10039930 | AvsMutexes | Real recursive synchronization, resource pool and type-3 descriptor ownership; original scheduling fairness not established |
+| AVS 0x1001AA40 / 0x100414C0 / 0x10039650 | AvsThreadContext | Native calling-thread TLS and type-2 task ownership; full worker bootstrap remains separate |
+| AVS 0x1002CD00 / 0x1002C820 / 0x1002C920 | AvsMountRegistry | Concrete read-only fs mounts and file lifetime; other backends and full addfs callbacks remain unfinished |
+| AVS 0x10029080 / 0x10043160 | AvsDefaultMountOptions | Original option grammar, callbacks and ignored unknown keys |
+
+RBOriginalStartup is the Apple runtime owner for the currently recovered preparation only. Its default entry stops at incomplete 0x10029410; it does not synthesize an original scene or claim successful AVS boot. The previous component harness remains explicit Debug tooling. See [startup entry](ORIGINAL_STARTUP_ENTRY.md) and the component evidence guides.
