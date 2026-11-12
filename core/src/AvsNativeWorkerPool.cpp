@@ -1,4 +1,5 @@
 #include "rb/AvsNativeWorkerPool.hpp"
+#include "rb/AvsThreadLocal.hpp"
 #include <condition_variable>
 #include <atomic>
 #include <algorithm>
@@ -19,12 +20,12 @@
 #endif
 
 namespace rb {
-namespace { thread_local uintptr_t workerIdentity = 0; }
 struct AvsNativeWorkerPool::Impl {
     struct Work {
         Task action;
         Completion completion;
         std::promise<int32_t> result;
+        uint32_t descriptor = 0;
     };
     struct Worker {
         Impl *owner = nullptr;
@@ -57,16 +58,19 @@ struct AvsNativeWorkerPool::Impl {
     std::vector<size_t> freeSlots, idleSlots, retiredSlots;
     AvsThreadBootstrapPlan defaults;
     AvsThreadAffinity affinity;
+    bool pooled = true;
     explicit Impl(AvsMutexes &value, const AvsThreadBootstrapPlan &plan) : mutexes(value), defaults(plan), affinity(plan.affinityMask) {}
     void returnedIdle(Worker &worker) {
         std::lock_guard<std::recursive_mutex> pool(poolMutex);
         std::lock_guard<std::mutex> lock(worker.mutex);
         if (worker.state == 1 && !stopping && worker.place == Worker::Place::running) {
-            worker.place = Worker::Place::idle; idleSlots.push_back(worker.index);
+            worker.place = pooled ? Worker::Place::idle : Worker::Place::checkedOut;
+            if(pooled)idleSlots.push_back(worker.index);
             worker.idlePublished = true;
         }
     }
     void retired(Worker &worker) {
+        if(!pooled)return;
         std::lock_guard<std::recursive_mutex> pool(poolMutex);
         if (worker.place != Worker::Place::retired) {
             worker.place = Worker::Place::retired; retiredSlots.push_back(worker.index);
@@ -74,12 +78,13 @@ struct AvsNativeWorkerPool::Impl {
         }
     }
     static void execute(Worker &worker) noexcept {
-        bool registered = false;
+        bool registered = false, bound = false;
+        const auto identity=reinterpret_cast<uintptr_t>(&worker);
         try {
             std::unique_lock<std::mutex> lock(worker.mutex);
             worker.ready.wait(lock, [&]{return worker.gate;});
-            workerIdentity = reinterpret_cast<uintptr_t>(&worker);
-            worker.owner->mutexes.registerCurrentThread(workerIdentity);
+            AvsThreadLocal::bind(identity);bound=true;
+            worker.owner->mutexes.registerCurrentThread(identity);
             registered = true;
             worker.entered = true;
             worker.ready.notify_all();
@@ -91,9 +96,11 @@ struct AvsNativeWorkerPool::Impl {
                 auto work = std::move(worker.work);
                 lock.unlock();
                 try {
+                    AvsThreadLocal::setCurrentDescriptor(identity,work->descriptor);
                     const auto result = work->action(); // 10041130 task execution.
                     for (auto &callback : work->completion) if (callback) callback();
                     worker.owner->mutexes.checkCurrentThreadCanUnregister();
+                    AvsThreadLocal::setCurrentDescriptor(identity,0);
                     work->result.set_value(result); // Completion follows callbacks, 10041230.
                 } catch (...) {
                     const auto failure = std::current_exception();
@@ -115,7 +122,7 @@ struct AvsNativeWorkerPool::Impl {
             lock.unlock(); if (retire) worker.owner->retired(worker); lock.lock();
             worker.owner->mutexes.unregisterCurrentThread();
             registered = false;
-            workerIdentity = 0;
+            AvsThreadLocal::unbind(identity);bound=false;
             worker.finished = true;
             worker.ready.notify_all();
         } catch (...) {
@@ -127,12 +134,16 @@ struct AvsNativeWorkerPool::Impl {
                     worker.owner->mutexes.unregisterCurrentThread(); registered = false;
                 } catch (...) { cleanupFailure = std::current_exception(); }
             }
+            if(bound) {
+                try {AvsThreadLocal::unbind(identity);bound=false;}
+                catch(...) {cleanupFailure=std::current_exception();}
+            }
             std::lock_guard<std::mutex> lock(worker.mutex);
             worker.failure = failure; worker.state = 0;
             worker.cleanupFailure = cleanupFailure;
             worker.finished = true;
             if (worker.work) worker.work->result.set_exception(worker.failure);
-            worker.work.reset(); worker.ready.notify_all(); workerIdentity = 0;
+            worker.work.reset(); worker.ready.notify_all();
         }
     }
 #if defined(_WIN32)
@@ -214,7 +225,7 @@ struct AvsNativeWorkerPool::Impl {
     }
     void stop() {
         for (const auto &worker : workers)
-            if (workerIdentity == reinterpret_cast<uintptr_t>(worker.get()))
+            if (AvsThreadLocal::currentIdentity() == reinterpret_cast<uintptr_t>(worker.get()))
                 throw std::logic_error("AVS worker cannot join its own pool");
         std::lock_guard<std::mutex> shutdown(shutdownMutex);
         {
@@ -261,7 +272,19 @@ AvsNativeWorkerPool::AvsNativeWorkerPool(const AvsThreadBootstrapPlan &plan, Avs
     } catch (...) { impl_->stop(); throw; }
 }
 AvsNativeWorkerPool::~AvsNativeWorkerPool() { impl_->stop(); }
+AvsNativeWorkerPool::AvsNativeWorkerPool(PrivateOwner, uint32_t stackSize, uint32_t priority, AvsMutexes &mutexes)
+    : impl_(nullptr) {
+    AvsThreadBootstrapPlan plan;plan.threadCount=1;plan.workerStack=stackSize;
+    plan.workerPriority=priority;plan.expiryCount=1;
+    impl_=std::make_unique<Impl>(mutexes,plan);impl_->pooled=false;
+    auto worker=std::make_unique<Impl::Worker>();worker->owner=impl_.get();worker->index=0;
+    worker->place=Impl::Worker::Place::checkedOut;
+    impl_->workers.push_back(std::move(worker));
+    try {impl_->start(*impl_->workers[0],plan,-1);impl_->order.push_back(0);}
+    catch(...) {impl_->stop();throw;}
+}
 std::optional<size_t> AvsNativeWorkerPool::checkout(uint32_t stackSize, uint32_t priority, uint32_t expiry) {
+    if(!impl_->pooled)throw std::logic_error("AVS private worker has no shared-pool checkout");
     if (priority>4) throw std::invalid_argument("AVS checkout priority must be 0 through 4");
     std::lock_guard<std::mutex> lifecycle(impl_->lifecycleMutex);
     if (impl_->stopping) return std::nullopt;
@@ -321,9 +344,9 @@ std::optional<size_t> AvsNativeWorkerPool::checkout(uint32_t stackSize, uint32_t
         return std::nullopt;
     }
 }
-std::future<int32_t> AvsNativeWorkerPool::assign(size_t slot, Task action, Completion callbacks) {
+std::future<int32_t> AvsNativeWorkerPool::assign(size_t slot, Task action, Completion callbacks, uint32_t descriptor) {
     if (!action) throw std::invalid_argument("AVS worker action is missing");
-    auto work=std::make_unique<Impl::Work>();work->action=std::move(action);work->completion=std::move(callbacks);
+    auto work=std::make_unique<Impl::Work>();work->action=std::move(action);work->completion=std::move(callbacks);work->descriptor=descriptor;
     auto result=work->result.get_future();
     auto &worker=*impl_->workers.at(slot);
     std::lock_guard<std::recursive_mutex> pool(impl_->poolMutex);
@@ -341,7 +364,7 @@ std::future<int32_t> AvsNativeWorkerPool::assign(size_t slot, Task action, Compl
 }
 void AvsNativeWorkerPool::waitIdle(size_t slot) {
     auto &worker=*impl_->workers.at(slot);
-    if (workerIdentity == reinterpret_cast<uintptr_t>(&worker))
+    if (AvsThreadLocal::currentIdentity() == reinterpret_cast<uintptr_t>(&worker))
         throw std::logic_error("AVS worker cannot wait for its own task to finish");
     std::unique_lock<std::mutex> lock(worker.mutex);
     worker.ready.wait(lock,[&]{return (worker.state==1&&worker.idlePublished)||((worker.state==0||worker.state==4)&&(worker.finished||!worker.started));});
@@ -353,8 +376,8 @@ AvsNativeWorkerPool::WorkerStatus AvsNativeWorkerPool::status(size_t slot) const
 }
 const std::vector<size_t> &AvsNativeWorkerPool::initialStartOrder() const noexcept { return impl_->order; }
 void AvsNativeWorkerPool::stop() { impl_->stop(); }
-uintptr_t AvsNativeWorkerPool::currentWorkerIdentity() noexcept { return workerIdentity; }
+uintptr_t AvsNativeWorkerPool::currentWorkerIdentity() noexcept { return AvsThreadLocal::currentIdentity(); }
 bool AvsNativeWorkerPool::isCurrentWorker(size_t slot) const {
-    return workerIdentity==reinterpret_cast<uintptr_t>(impl_->workers.at(slot).get());
+    return AvsThreadLocal::currentIdentity()==reinterpret_cast<uintptr_t>(impl_->workers.at(slot).get());
 }
 } // namespace rb

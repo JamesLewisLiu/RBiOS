@@ -18,7 +18,7 @@ Updated 2026-11-12. Implementation, host validation, Apple builds and device pla
 | Scores and profiles | Memory only; no database, history or upload queue | Persistence intentionally excluded |
 | Networking | Original fields, selected callbacks, protocol/transport isolation, mocks and configuration | Full EA3 envelope, discovery/card/profile/score flow and URLSession bridge |
 | Embedded server | Lifecycle interface; unavailable without source | Server-source migration |
-| Windows build | Zig C++17 and 52 test programs passed, including native AVS services and configuration backup/replacement | Not ARM64/iOS compilation evidence |
+| Windows build | Zig C++17 and 57 test programs passed, including native AVS services and configuration backup/replacement | Not ARM64/iOS compilation evidence |
 | macos-15 Actions | Worker foundation at 9056cb0 passed 49 portable tests, arm64 archive, minimum-OS validation and 48 simulator tests; see Actions for subsequent revisions | Simulator tests do not establish iPadOS 14.6 hardware behavior |
 | M1 / iPadOS 14.6 | User reports installation and provides stage-completion screenshots with corrected field framing | New frame graphics, performance, synchronization and instrumented touch testing |
 | Live server | No probe, login or upload | Offline tests do not establish live compatibility |
@@ -39,7 +39,7 @@ The user reported the sound/ProMotion build is playable with occasional acceptab
 
 ## Original-execution correction
 
-The previous Apple menu/game flow remains a regression harness only. The default entry now runs recovered startup preparation and stops at the incomplete AVS thread bootstrap; Release no longer opens the harness. See [startup entry](ORIGINAL_STARTUP_ENTRY.md). Frozen original art plus newly authored page decisions are excluded from the accepted migration. No replacement bootstrap or successful-service placeholders are introduced. The original startup and TEST behavior must own game creation and mode selection before integration is considered faithful.
+The previous Apple menu/game flow remains a regression harness only. The default entry now runs recovered startup preparation and native thread services, then stops at the incomplete filesystem bootstrap; Release no longer opens the harness. See [startup entry](ORIGINAL_STARTUP_ENTRY.md). Frozen original art plus newly authored page decisions are excluded from the accepted migration. No replacement bootstrap or successful-service placeholders are introduced. The original startup and TEST behavior must own game creation and mode selection before integration is considered faithful.
 
 New bounded recovery: original TEST record tables/navigation/exit flags, game-entry identity mutations and AVS2 product-mode configuration normalization. These are tested components, not a working AVS boot. See [FIDELITY_AUDIT](FIDELITY_AUDIT.md), [ORIGINAL_BOOT_CHAIN](ORIGINAL_BOOT_CHAIN.md), [ORIGINAL_TEST_MENU](ORIGINAL_TEST_MENU.md) and [AVS_BOOT_CONFIG](AVS_BOOT_CONFIG.md). No live services or NVRAM writers were executed.
 
@@ -68,3 +68,7 @@ Bootstrap configuration now retains original stack/count adjustments, arena acco
 The latest service increment adds real finite resource pools and connects them to native task controls and optionally mutex resources. Worker checkout now restores idle selection, retired-slot recycling, affinity release and larger-stack restart. Task creation preserves original validation, descriptor ordering and allocation-failure side effects; deferred descriptor bindings are neutralized only during native owner teardown.
 
 The alarm service restores repeating/set-if-stopped behavior, deferred retirement, callback order, wrapped clock input and a blocking native dispatcher. It does not allocate a replacement for the original reserved alarm task. Full boot ownership, exported TLS/completion-handler integration and remaining condition/event/semaphore operations are still incomplete. The default Apple entry remains stopped before AVS completion and does not enter original TEST or gameplay. No original files or server state were changed.
+
+## Connected thread startup prefix, 2026-11-12
+
+The increments above are historical snapshots. The current default entry connects the original descriptor/thread initialization order, passive synchronization pools, configured mutex delay, shared TLS, live completion registry and private reserved alarm worker. A dedicated native owner keeps main TLS and teardown on one thread. Default initialization now reaches the explicit filesystem bootstrap boundary at 0x10022CD0; failures stop at their actual earlier stage. This is still not a complete AVS/EA3 startup or playable original runtime. Full synchronization exports, logging/property services, filesystem backends and original scene ownership remain outstanding. See [native runtime](AVS_NATIVE_RUNTIME.md). No original file writes or game-server traffic occurred.

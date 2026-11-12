@@ -13,8 +13,23 @@ struct AvsTasks::Record {
 };
 AvsTasks::AvsTasks(AvsDescriptors &descriptors, AvsNativeWorkerPool &workers, const AvsThreadBootstrapPlan &plan)
     : descriptors_(descriptors), workers_(workers), plan_(plan),
-      pool_(descriptors, uint32_t(sizeof(Record)), plan.threadCount,
-            uint32_t(alignof(Record)>8?alignof(Record):8)), bindings_(descriptors.capacity()+4) {}
+      ownedPool_(std::make_unique<AvsResourcePool>(descriptors,recordSize(),plan.threadCount,recordAlignment())),
+      pool_(*ownedPool_), ownedRegistry_(std::make_unique<AvsTaskCompletionRegistry>()),
+      registry_(ownedRegistry_.get()), bindings_(descriptors.capacity()+4) {}
+AvsTasks::AvsTasks(AvsDescriptors &descriptors, AvsNativeWorkerPool &workers,
+    const AvsThreadBootstrapPlan &plan, AvsResourcePool &pool, AvsTaskCompletionRegistry *registry)
+    : descriptors_(descriptors), workers_(workers), plan_(plan), pool_(pool),
+      ownedRegistry_(registry?nullptr:std::make_unique<AvsTaskCompletionRegistry>()),
+      registry_(registry?registry:ownedRegistry_.get()), bindings_(descriptors.capacity()+4) {
+    uintptr_t payload=0;
+    if(!descriptors.lookup(pool.descriptor(),&payload)||payload!=reinterpret_cast<uintptr_t>(&pool))
+        throw std::invalid_argument("AVS task pool must use the same descriptor owner");
+    if(pool.capacity()!=plan.threadCount||pool.freeCount()!=pool.capacity()||pool.elementSize()<recordSize()||
+       reinterpret_cast<uintptr_t>(pool.at(0))%recordAlignment()!=0||pool.stride()%recordAlignment()!=0)
+        throw std::invalid_argument("AVS task pool requires empty, aligned native record storage of the configured capacity");
+}
+uint32_t AvsTasks::recordSize() noexcept {return uint32_t(sizeof(Record));}
+uint32_t AvsTasks::recordAlignment() noexcept {return uint32_t(alignof(Record)>8?alignof(Record):8);}
 AvsTasks::~AvsTasks() {
     // Host owner teardown waits for real actions; it does not fabricate task
     // completion or publish a successful original destroy for failed actions.
@@ -58,7 +73,11 @@ int32_t AvsTasks::create(Procedure procedure, uintptr_t argument, uint32_t stack
     }
     task->descriptor=token;
     bindings_[token&0x1ffff]={token,reinterpret_cast<uintptr_t>(task)};
-    try { task->result=workers_.assign(*worker,[procedure,argument]{return procedure(argument);}).share(); }
+    try {
+        AvsNativeWorkerPool::Completion completion{};
+        completion[0]=[registry=registry_,token]{registry->dispatch(token);};
+        task->result=workers_.assign(*worker,[procedure,argument]{return procedure(argument);},std::move(completion),token).share();
+    }
     catch (...) {
         descriptors_.replace(token,nullptr,0);descriptors_.release(token);
         releaseRecord(*task);failure_=Failure::dispatch;return creationFailed;
@@ -75,7 +94,8 @@ int32_t AvsTasks::wait(uint32_t token) {
     std::shared_future<int32_t> result;
     {std::lock_guard<std::recursive_mutex> lock(mutex_);auto &task=record(token);
       if(workers_.isCurrentWorker(task.worker)&&task.result.wait_for(std::chrono::seconds(0))!=std::future_status::ready)
-          throw std::logic_error("AVS task cannot wait for itself");result=task.result;}
+          throw std::logic_error("AVS task cannot wait for itself");
+      result=task.result;}
     return result.get();
 }
 int32_t AvsTasks::destroy(uint32_t token) {

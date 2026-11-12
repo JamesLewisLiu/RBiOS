@@ -3,7 +3,7 @@
 #include "rb/AvsXmlProperty.hpp"
 #include "rb/AvsConfigImport.hpp"
 #include "rb/AvsDefaultFile.hpp"
-#include "rb/AvsDescriptors.hpp"
+#include "rb/AvsNativeRuntime.hpp"
 #include "rb/BuildIdentity.hpp"
 #include <memory>
 #include <string_view>
@@ -176,10 +176,12 @@ rb::PropertyDocument decodeOriginalXml(NSData *data) {
 }
 
 @implementation RBOriginalStartup {
-    std::unique_ptr<rb::AvsDescriptors> _descriptors;
+    std::unique_ptr<rb::AvsNativeRuntime> _runtime;
     rb::AvsBootConfigImage _config;
     rb::Bytes _standardHeap, _avsHeap;
 }
+- (void)stop { _runtime.reset(); }
+- (void)dealloc { _runtime.reset(); }
 + (NSData *)propertyDocumentDataFromXML:(NSData *)xml error:(NSError **)error {
     try {
         const auto bytes = decodeOriginalXml(xml).encode();
@@ -194,7 +196,7 @@ rb::PropertyDocument decodeOriginalXml(NSData *data) {
     } catch (const std::exception &e) { reportError(error, e); return nil; }
 }
 - (NSDictionary<NSString *, id> *)startAtRoot:(NSURL *)root error:(NSError **)error {
-    _descriptors.reset(); _standardHeap.clear(); _avsHeap.clear();
+    _runtime.reset(); _standardHeap.clear(); _avsHeap.clear();
     try {
         const auto dll = readHostFile([root URLByAppendingPathComponent:@"modules/reflecbeat.dll"]);
         unsigned char digest[CC_SHA256_DIGEST_LENGTH]; CC_SHA256(dll.data(), CC_LONG(dll.size()), digest);
@@ -207,20 +209,21 @@ rb::PropertyDocument decodeOriginalXml(NSData *data) {
         _standardHeap.resize(0x1000000); _avsHeap.resize(0x1000000);
         _config = rb::importAvsBootConfig(&document.root);
         const auto fixes = rb::applyAvsProductMode(_config, _config[0] != 0);
-        const auto count = uint16_t(_config[68]) | uint16_t(_config[69]) << 8;
-        if (((24u * (uint32_t(count) + 4) + 15u) & ~15u) > _avsHeap.size())
-            throw rb::Error("AVS descriptor arena exceeds supplied heap");
-        _descriptors = std::make_unique<rb::AvsDescriptors>(count);
-        // 10013BC0 calls the complete thread bootstrap here, before starting
-        // descriptors or mounting files. Never jump over missing services.
-        return @{ @"bootComplete": @NO, @"blockedAddress": @"libavs-win32.dll:0x10029410",
-            @"message": @"Thread bootstrap is not fully recovered. EA3 and game entry were not executed.",
-            @"trace": @[@"Original DLL identity verified", @"Original AVS XML loaded",
-                @"AVS heap buffers allocated", @"AVS configuration imported",
-                [NSString stringWithFormat:@"Product-mode corrections: %lu", (unsigned long)fixes.size()],
-                [NSString stringWithFormat:@"Descriptor pool allocated: %u", unsigned(count)]] };
+        _runtime = std::make_unique<rb::AvsNativeRuntime>();
+        const auto state = _runtime->start(_config,rb::AvsNativeRuntime::nativeProcessAffinityMask(),_avsHeap.size());
+        NSMutableArray<NSString *> *trace = [NSMutableArray arrayWithArray:@[
+            @"Original DLL identity verified", @"Original AVS XML loaded",
+            @"AVS heap buffers allocated", @"AVS configuration imported",
+            [NSString stringWithFormat:@"Product-mode corrections: %lu", (unsigned long)fixes.size()]]];
+        for (const auto &line : state.trace) [trace addObject:@(line.c_str())];
+        [trace addObject:[NSString stringWithFormat:@"Original arena extent: %llu bytes",
+            (unsigned long long)state.originalArenaBytes]];
+        if (state.failed) _runtime.reset();
+        return @{ @"bootComplete": @NO, @"threadPrefixReady": @(state.threadPrefixReady),
+            @"failed": @(state.failed), @"blockedAddress": @(rb::AvsNativeRuntime::address(state.stage)),
+            @"message": @(state.message.c_str()), @"trace": trace };
     } catch (const std::exception &e) {
-        _descriptors.reset(); rb::Bytes{}.swap(_standardHeap); rb::Bytes{}.swap(_avsHeap);
+        _runtime.reset(); rb::Bytes{}.swap(_standardHeap); rb::Bytes{}.swap(_avsHeap);
         reportError(error, e); return nil;
     }
 }

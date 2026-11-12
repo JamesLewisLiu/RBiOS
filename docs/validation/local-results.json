@@ -812,5 +812,24 @@
       "Original aggregate construction order, reserved alarm task, unified TLS and completion registry remain incomplete",
       "No full boot, original TEST/game flow, new device play or server traffic"
     ]
+  },
+  "avs_connected_thread_startup": {
+    "date": "2026-11-12",
+    "host_test_programs": 57,
+    "python_tests": 9,
+    "aggregate_boot_cases": 24,
+    "synchronization_pool_configurations": 67,
+    "synchronization_pool_stages": 268,
+    "completion_registry_commands": 4749,
+    "thread_self_query_cases": 5,
+    "mutex_delay_cases": 15,
+    "default_entry": "Recovered thread initialization prefix; explicit stop at filesystem bootstrap 0x10022CD0",
+    "apple_validation": "Pending Actions for this increment; Windows checks do not validate Apple execution",
+    "limits": [
+      "Native OS operations remain explicit instruction-oracle boundaries",
+      "Synchronization pool allocation does not complete exported condition/event/semaphore behavior",
+      "Logging/property services, filesystem boot, EA3 and original TEST/game ownership remain incomplete",
+      "No original resource/configuration writes, game-server traffic or device play"
+    ]
   }
 }

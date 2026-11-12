@@ -80,10 +80,12 @@ builds the native worker pool through `10041E40`. The configuration includes
 stack limits, affinity, initial worker count, expiry policy, and worker stack
 size. Its warning path for expiry count 1 is not a standalone success path.
 
-The worker pool, task queue, CPU discovery/affinity adapter, worker stack
-allocation, cancellation, and shutdown must be recovered before the complete
-`10029410` thread bootstrap can pass. This module supplies the real current-thread
-owner needed after that stage; it does not bypass it.
+The worker pool, original task admission, affinity accounting, native stacks,
+completion handlers and task shutdown are now implemented in the accompanying
+worker/task modules. `AvsThreadLocal` supplies a shared identity and self-query
+for this context and those workers. The enclosing `10029410` bootstrap must still
+construct and own all original services in order; this context does not bypass
+that stage. See `AVS_THREAD_LOCAL_AND_COMPLETION.md` for the shared TLS contract.
 
 ## Validation
 

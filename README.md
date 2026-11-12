@@ -1,6 +1,6 @@
 # RBiOS native migration
 
-> **Recovery status:** The default Apple entry now attempts recovered startup preparation and stops explicitly at the incomplete AVS thread bootstrap (0x10029410). This Release build does not enter the game. The old component harness is available only through an explicit Debug launch argument. Full AVS2/EA3 boot and original scene ownership remain incomplete. See [startup entry](docs/ORIGINAL_STARTUP_ENTRY.md).
+> **Recovery status:** The default Apple entry now attempts recovered startup preparation and creates the recovered native thread services and stops explicitly at the incomplete filesystem bootstrap (0x10022CD0). This Release build does not enter the game. The old component harness is available only through an explicit Debug launch argument. Full AVS2/EA3 boot and original scene ownership remain incomplete. See [startup entry](docs/ORIGINAL_STARTUP_ENTRY.md).
 
 Native C++ restoration of REFLEC BEAT MBR:J:A:A:2019121100, with an iPad application targeting iPadOS 14.0 and later. The primary device is an M1 iPad Pro running iPadOS 14.6.
 

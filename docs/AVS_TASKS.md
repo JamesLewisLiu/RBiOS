@@ -61,19 +61,21 @@ this service is alive. A bounded per-descriptor-index binding table lets native
 owner teardown neutralize any retained callback and payload after records have
 already been released, without modifying descriptors reused by another owner.
 
-The original global four-handler completion registry and exported TLS queries
-are not connected by this module. Low-level workers already execute supplied
-completion handlers in original order; task admission currently represents the
-source configuration with no registered global handlers. Callers requiring a
-registered original handler must remain blocked until its binding is recovered.
-The separate main-thread and worker TLS identities must also be unified at the
-export-adapter boundary. This is not a complete `10029410` bootstrap or permission
-to skip the other original service constructors.
-The convenience owner currently constructs its task pool after receiving an
-already-created worker service. Original `1001ABC0` constructs the task arena
-before its worker arena; an enclosing boot owner must provide that source order
-through a borrowed/preallocated task-pool integration before claiming this stage
-is wired into the original bootstrap.
+Tasks now dispatch the recovered four-handler completion registry before their
+result is published. Registry mutations and callback ordering are described in
+`AVS_THREAD_LOCAL_AND_COMPLETION.md`. The current task descriptor and real native
+owner identity remain visible through the shared TLS provider during the action
+and all completion callbacks. Callback failures propagate through the task result.
+
+The borrowed-pool constructor lets the enclosing boot owner construct its type-1
+task pool before workers, matching `1001ABC0`. Use `recordSize()` and
+`recordAlignment()` for native payload storage, and optionally pass an external
+completion registry. Both borrowed owners must outlive this task service. The
+constructor checks same descriptor ownership, configured capacity, empty slots,
+payload size and alignment. Native task destruction returns slots without
+destroying a borrowed pool or registry. The convenience constructor still owns
+its own pool for standalone tests. Other `10029410` service constructors remain
+required; these components do not bypass them.
 
 ## Validation
 

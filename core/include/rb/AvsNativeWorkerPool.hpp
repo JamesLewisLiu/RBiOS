@@ -14,6 +14,7 @@ namespace rb {
 // already selected original worker slot, not a replacement scheduling policy.
 class AvsNativeWorkerPool {
 public:
+    struct PrivateOwner {};
     using Task = std::function<int32_t()>;
     using Completion = std::array<std::function<void()>, 4>;
     struct WorkerStatus {
@@ -27,10 +28,13 @@ public:
         bool priorityApplied;
     };
     AvsNativeWorkerPool(const AvsThreadBootstrapPlan &, AvsMutexes &);
+    // Source worker owner pointer NULL: one directly assigned worker, without
+    // shared-pool construction, checkout, idle/retired lists or affinity ring.
+    AvsNativeWorkerPool(PrivateOwner, uint32_t stackSize, uint32_t priority, AvsMutexes &);
     ~AvsNativeWorkerPool();
     AvsNativeWorkerPool(const AvsNativeWorkerPool &) = delete;
     AvsNativeWorkerPool &operator=(const AvsNativeWorkerPool &) = delete;
-    std::future<int32_t> assign(size_t slot, Task, Completion = {});
+    std::future<int32_t> assign(size_t slot, Task, Completion = {}, uint32_t descriptor = 0);
     std::optional<size_t> checkout(uint32_t stackSize, uint32_t priority, uint32_t expiry = 1);
     void waitIdle(size_t slot);
     WorkerStatus status(size_t slot) const;

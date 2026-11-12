@@ -1,4 +1,5 @@
 #include "rb/AvsThreadContext.hpp"
+#include "rb/AvsThreadLocal.hpp"
 #include <stdexcept>
 #if defined(_WIN32)
 #define NOMINMAX
@@ -32,11 +33,11 @@ AvsThreadContext::AvsThreadContext(AvsDescriptors &descriptors, AvsMutexes &mute
     AvsThreadPriorityBackend &priorities) : descriptors_(descriptors), mutexes_(mutexes), priorities_(priorities) {}
 AvsThreadContext::~AvsThreadContext() { abandonNativeOwner(); }
 uintptr_t AvsThreadContext::currentIdentity() noexcept {
-    return current_ ? reinterpret_cast<uintptr_t>(current_->identity_.get()) : 0;
+    return AvsThreadLocal::currentIdentity();
 }
 void AvsThreadContext::start(uint32_t priority) {
     mapPriority(priority);
-    if (current_ || control_) throw std::logic_error("AVS main thread context is already bound");
+    if (current_ || control_ || AvsThreadLocal::currentIdentity()) throw std::logic_error("AVS main thread context is already bound");
     thread_ = std::this_thread::get_id();
     control_ = std::make_unique<Control>();
     control_->owner = this;
@@ -47,11 +48,14 @@ void AvsThreadContext::start(uint32_t priority) {
     identity_->state = 3;
     identity_->ready.signals = 1;
     identity_->ready.event.notify_one();
+    AvsThreadLocal::bind(reinterpret_cast<uintptr_t>(identity_.get()));
+    AvsThreadLocal::setCurrentTask(reinterpret_cast<uintptr_t>(identity_.get()),0,true);
     current_ = this; // Native TLS analogue of 10039650, before descriptor allocation.
     descriptor_ = descriptors_.allocate(2, dispose, reinterpret_cast<uintptr_t>(control_.get()));
     ownedDescriptor_ = descriptor_;
     if (!descriptor_) throw std::runtime_error("AVS main thread descriptor allocation failed");
     control_->descriptor = descriptor_;
+    AvsThreadLocal::setCurrentDescriptor(currentIdentity(),descriptor_);
     control_->state = 0; // 10041160 binds descriptor and clears task fields.
     if (priority_ != priority) {
         priority_ = uint16_t(priority);
@@ -76,7 +80,10 @@ void AvsThreadContext::detach() {
         throw std::logic_error("AVS main thread context must detach on its owning thread");
     if (registered_) mutexes_.unregisterCurrentThread();
     registered_ = false;
-    if (current_ == this) current_ = nullptr;
+    if (current_ == this) {
+        AvsThreadLocal::unbind(reinterpret_cast<uintptr_t>(identity_.get()));
+        current_ = nullptr;
+    }
     descriptor_ = 0;
 }
 void AvsThreadContext::stop() {

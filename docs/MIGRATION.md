@@ -93,7 +93,7 @@ The data-contract test passes a decoded property tree through import, product-mo
 | AVS 0x1002CD00 / 0x1002C820 / 0x1002C920 | AvsMountRegistry | Concrete read-only fs mounts and file lifetime; other backends and full addfs callbacks remain unfinished |
 | AVS 0x10029080 / 0x10043160 | AvsDefaultMountOptions | Original option grammar, callbacks and ignored unknown keys |
 
-RBOriginalStartup is the Apple runtime owner for the currently recovered preparation only. Its default entry stops at incomplete 0x10029410; it does not synthesize an original scene or claim successful AVS boot. The previous component harness remains explicit Debug tooling. See [startup entry](ORIGINAL_STARTUP_ENTRY.md) and the component evidence guides.
+RBOriginalStartup owns AvsNativeRuntime, which constructs the recovered descriptor/thread services on a dedicated native thread. Its default entry stops at incomplete filesystem bootstrap 0x10022CD0; it does not synthesize an original scene or claim successful AVS boot. The previous component harness remains explicit Debug tooling. See [startup entry](ORIGINAL_STARTUP_ENTRY.md) and the component evidence guides.
 
 The next thread increment maps AVS 0x10039530/0x1001ABC0 and 0x1005C1D0/0x1005C1A0 to [bootstrap policy](AVS_THREAD_BOOTSTRAP.md), and 0x10041E40/0x10041660/0x10041130/0x10041750 to [native worker lifecycle](AVS_NATIVE_WORKERS.md). Task admission, recycling and the remaining aggregate services remain unported; creating initial workers is not equivalent to completing AVS boot.
 

@@ -8,6 +8,19 @@
 
 namespace { void require(bool value) { if (!value) throw std::runtime_error("AVS mutex regression"); } }
 int main(int argc, char **argv) { try {
+    if(argc>1 && std::string(argv[1])=="--delay-batch") {
+        uint32_t delay,count;
+        while(std::cin>>delay>>count) {
+            rb::AvsDescriptors d(8);std::vector<uint32_t> slept;
+            rb::AvsMutexes mutexes(d,1,uint16_t(delay),[&](uint32_t ms){slept.push_back(ms);});
+            mutexes.registerCurrentThread(1);auto token=mutexes.create();
+            for(uint32_t i=0;i<count;++i)mutexes.lock(token,1);
+            for(uint32_t i=0;i<count;++i)mutexes.unlock(token);
+            mutexes.unregisterCurrentThread();mutexes.destroy(token);
+            std::cout<<slept.size();for(auto ms:slept)std::cout<<' '<<ms;std::cout<<'\n';
+        }
+        return 0;
+    }
     if (argc > 1 && std::string(argv[1]) == "--batch") {
         std::unique_ptr<rb::AvsDescriptors> descriptors;
         std::unique_ptr<rb::AvsMutexes> mutexes;
@@ -64,6 +77,38 @@ int main(int argc, char **argv) { try {
     require(only && pool.available() == 1);
     require(pool.create() == 0 && pool.available() == 1); // Descriptor failure unwinds resource.
     require(pool.destroy(only) == 0 && pool.available() == 2);
+    {
+        rb::AvsDescriptors d(8);std::vector<uint32_t> delays;
+        rb::AvsMutexes mutexes(d,1,17,[&](uint32_t ms){delays.push_back(ms);});
+        require(mutexes.delayMilliseconds()==17);
+        auto token=mutexes.create();bool rejected=false;
+        try{mutexes.lock(token,1);}catch(const std::logic_error&){rejected=true;}
+        require(rejected && delays.empty());
+        mutexes.registerCurrentThread(1);
+        rejected=false;try{mutexes.lock(0,1);}catch(const std::invalid_argument&){rejected=true;}
+        require(rejected && delays.empty());
+        mutexes.lock(token,1);mutexes.lock(token,1);
+        require(delays==std::vector<uint32_t>({17,17}));
+        mutexes.unlock(token);mutexes.unlock(token);mutexes.unregisterCurrentThread();mutexes.destroy(token);
+        rb::AvsMutexes zero(d,1,0,[&](uint32_t){throw std::runtime_error("zero must not sleep or yield");});
+        zero.registerCurrentThread(1);token=zero.create();zero.lock(token,1);zero.unlock(token);zero.unregisterCurrentThread();zero.destroy(token);
+    }
+    {
+        rb::AvsDescriptors d(8);rb::AvsResourcePool resource(d,16,1);rb::AvsMutexes delayed(d);
+        std::promise<void> inSleep,finishSleep;auto finish=finishSleep.get_future();
+        std::atomic<unsigned> calls{0};
+        delayed.bindResourcePool(resource,65535,[&](uint32_t ms){require(ms==65535);if(calls.fetch_add(1)==0){inSleep.set_value();finish.wait();}});
+        require(delayed.delayMilliseconds()==65535);auto token=delayed.create();
+        auto holder=std::async(std::launch::async,[&]{delayed.registerCurrentThread(1);delayed.lock(token,1);delayed.unlock(token);delayed.unregisterCurrentThread();});
+        inSleep.get_future().wait();
+        bool rejected=false;try{delayed.destroy(token);}catch(const std::logic_error&){rejected=true;}
+        require(rejected && d.lookup(token)); // Delay runs while ownership is held.
+        finishSleep.set_value();holder.get();delayed.destroy(token);
+        rb::AvsMutexes fails(d,1,1,[](uint32_t){throw std::runtime_error("injected sleep failure");});
+        fails.registerCurrentThread(1);token=fails.create();rejected=false;
+        try{fails.lock(token,1);}catch(const std::runtime_error&){rejected=true;}
+        require(rejected);fails.unregisterCurrentThread();fails.destroy(token);
+    }
     // Real original array descriptor and resource accounting, with native
     // mutex records outside the original 16-byte resource payload.
     {

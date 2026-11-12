@@ -35,7 +35,10 @@ final class OriginalBootViewController: UIViewController, UIDocumentPickerDelega
             if let url = try? URL(resolvingBookmarkData: bookmark, options: [], relativeTo: nil, bookmarkDataIsStale: &stale) { begin(url) }
         }
     }
-    deinit { if scoped { resource?.stopAccessingSecurityScopedResource() } }
+    deinit {
+        startup.stop()
+        if scoped { resource?.stopAccessingSecurityScopedResource() }
+    }
     @objc private func selectDirectory() {
         guard !running else { return }
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder], asCopy: false)
@@ -49,6 +52,7 @@ final class OriginalBootViewController: UIViewController, UIDocumentPickerDelega
     private func begin(_ url: URL) {
         guard !running else { return }
         running = true
+        startup.stop()
         let accessed = url.startAccessingSecurityScopedResource()
         if scoped { resource?.stopAccessingSecurityScopedResource() }
         resource = url; scoped = accessed
@@ -56,7 +60,8 @@ final class OriginalBootViewController: UIViewController, UIDocumentPickerDelega
         navigationItem.rightBarButtonItem?.isEnabled = false
         output.text = "Starting original configuration and AVS initialization..."
         // Strong ownership keeps security-scoped access alive until the worker
-        // finishes; all runtime attempts execute on this one serial queue.
+        // finishes. The bridge owns a dedicated native runtime thread: a serial
+        // GCD queue alone cannot preserve the original thread-local identity.
         work.async { [self] in
             let result: Result<[String: Any], Error>
             do { result = .success(try startup.start(at: url)) }
@@ -72,7 +77,8 @@ final class OriginalBootViewController: UIViewController, UIDocumentPickerDelega
                     let trace = (state["trace"] as? [String] ?? []).joined(separator: "\n")
                     let address = state["blockedAddress"] as? String ?? "Unknown dependency"
                     let reason = state["message"] as? String ?? "Startup has not completed."
-                    output.text = "\(trace)\n\nStartup stopped at \(address)\n\n\(reason)"
+                    let status = state["failed"] as? Bool == true ? "Startup failed" : "Startup stopped"
+                    output.text = "\(trace)\n\n\(status) at \(address)\n\n\(reason)"
                 case .failure(let error): output.text = "Startup failed\n\n\(error.localizedDescription)"
                 }
             }

@@ -15,7 +15,7 @@ Fresh Official IDA MCP evidence is retained under
 
 | Original function | Behavior | Native counterpart |
 | --- | --- | --- |
-| `10022B80` | Initialize mutex pool from configuration `uint16` at `+0x22`; reject zero count; retain optional wait delay at `+0x2E` | Constructor accepts explicit finite count; configuration import and delay remain caller work |
+| `10022B80` | Initialize mutex pool from configuration `uint16` at `+0x22`; reject zero count; retain optional wait delay at `+0x2E` | Explicit finite count or borrowed resource pool; constructor/binding accepts imported delay |
 | `10039CE0`, `10039CB0` | Serialize resource allocation/free with a critical section | Pool mutex and ordered free-slot stack |
 | `100399F0` | Create an initially nonsignaled auto-reset event; initialize owner, lock state and recursion count | Allocate real `std::recursive_mutex`; allocation errors return failure |
 | `07B / 10022AB0` | Allocate resource, initialize it, create type-3 descriptor; unwind resource if descriptor creation fails | `create` |
@@ -23,6 +23,7 @@ Fresh Official IDA MCP evidence is retained under
 | `013 / 100150E0` | Create the descriptor-service mutex, save its token, fatal error on failure | `startDescriptorService`; throws on failure |
 | `023 / 10015090` | Invoke service-mutex destructor directly and clear global token | `stopDescriptorService` |
 | `10039930`, `100398F0` | Recursive ownership; contention waits until final release signals a waiter | Real native recursive lock/unlock |
+| `10022940`, `10039630` | Delay after successful registered-thread lock when configured milliseconds are nonzero | Sleep while retaining ownership; default native `sleep_for`, injectable for tests |
 
 Original pool slots are 16-byte resources, with allocator headers and alignment
 outside them. Native slots retain index order and free-stack reuse but contain
@@ -50,7 +51,10 @@ the actual thread owner must supply its recovered identity during integration.
 
 The native primitive preserves blocking and recursion, but does not reproduce
 the exact Win32 event scheduler or undocumented waiter fairness. The optional
-configured delay after locking is not applied by this module. Unlock by a
+configured delay applies after every successful acquisition, including recursive
+locks. Zero skips both sleep and yield; invalid or unregistered callers never
+sleep. The delay is a 16-bit value from full configuration offset 118, supplied
+to the constructor or `bindResourcePool`. Unlock by a
 different native thread, missing registration, or destruction with holders or
 waiters reports an explicit error instead of invoking native undefined behavior.
 Resource destruction must be externally sequenced after all users are quiescent.
@@ -85,6 +89,11 @@ bootstrap subsystems still need recovery before this stage can succeed.
 Native tests pass finite-resource exhaustion, descriptor-exhaustion unwind,
 service startup/stop, explicit identity checks, nested recursion, actual
 cross-thread contention, rejection of destruction while locked, and teardown.
+Injected sleep tests cover zero/positive/maximum delay, retained ownership during
+sleep, recursive acquisitions and exception rollback. Original delay evidence
+is in `official-runtime-registry-pseudocode.json` and
+`official-runtime-lifecycle-pseudocode.json`. `tools/verify_avs_mutex_delay.py`
+matches 15 original configuration/lock/sleep traces without waiting in real time.
 
 `tools/verify_avs_mutexes.py` compares **2,004 commands** with original x86
 instructions for `10022AB0`, `10022B30`, descriptor initialization, allocation,

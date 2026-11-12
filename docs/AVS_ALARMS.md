@@ -55,8 +55,9 @@ a regular AVS task. Original boot `10040700` binds reserved descriptor `0x40003`
 through `10041160` and uses the private worker start with priority `0`, affinity
 `-1`, expiry `1`, and a 4096-byte requested stack. The argument positions are
 confirmed by raw pushes at `100407AB` through `100407B1` and the worker field
-stores in `10041588` through `100415B8`. The runtime owner must supply that
-reserved task, native worker, and unified AVS task/TLS context. Regular public
+stores in `10041588` through `100415B8`. `AvsReservedAlarmTask` now supplies that
+reserved task, private native worker, and unified AVS task/TLS context; see
+`AVS_RESERVED_ALARM_TASK.md`. Regular public
 task allocation must not substitute a new descriptor for the reserved task.
 Call `requestStop()` and join the worker before destroying the alarm service;
 do not destroy the service from its own callback. This module alone does not

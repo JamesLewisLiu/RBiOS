@@ -1,6 +1,7 @@
 #pragma once
 #include "rb/AvsNativeWorkerPool.hpp"
 #include "rb/AvsResourcePool.hpp"
+#include "rb/AvsTaskCompletionRegistry.hpp"
 #include <functional>
 #include <mutex>
 #include <vector>
@@ -14,6 +15,10 @@ public:
     static constexpr int32_t creationFailed = int32_t(0x8001000cu);
     enum class Failure { none, arguments, taskPool, control, worker, descriptor, dispatch };
     AvsTasks(AvsDescriptors &, AvsNativeWorkerPool &, const AvsThreadBootstrapPlan &);
+    AvsTasks(AvsDescriptors &, AvsNativeWorkerPool &, const AvsThreadBootstrapPlan &, AvsResourcePool &,
+             AvsTaskCompletionRegistry * = nullptr);
+    static uint32_t recordSize() noexcept;
+    static uint32_t recordAlignment() noexcept;
     ~AvsTasks();
     int32_t create(Procedure, uintptr_t argument, uint32_t stackSize, uint32_t priority);
     int32_t wait(uint32_t descriptor);
@@ -21,6 +26,7 @@ public:
     Failure lastFailure() const;
     uint32_t freeCount() const;
     uint32_t poolDescriptor() const noexcept;
+    AvsTaskCompletionRegistry &completions() noexcept {return *registry_;}
 private:
     struct Record;
     static int32_t dispose(uintptr_t payload);
@@ -29,7 +35,10 @@ private:
     AvsDescriptors &descriptors_;
     AvsNativeWorkerPool &workers_;
     AvsThreadBootstrapPlan plan_;
-    AvsResourcePool pool_;
+    std::unique_ptr<AvsResourcePool> ownedPool_;
+    AvsResourcePool &pool_;
+    std::unique_ptr<AvsTaskCompletionRegistry> ownedRegistry_;
+    AvsTaskCompletionRegistry *registry_;
     mutable std::recursive_mutex mutex_;
     std::vector<Record *> records_;
     // Last binding per descriptor index, retained across deferred bulk cleanup.

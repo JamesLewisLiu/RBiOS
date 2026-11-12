@@ -1,6 +1,6 @@
 # Original startup entry: recovery build
 
-The default Apple root is now OriginalBootViewController. It selects or restores resource access and invokes RBOriginalStartup on one serial queue. It does not construct the catalog, menu or StageSession, and does not fall back to the component harness after an error. Debug builds can explicitly use the --component-harness launch argument; Release builds cannot select that route.
+The default Apple root is OriginalBootViewController. It selects or restores resource access and invokes RBOriginalStartup. File/XML preparation uses a serial queue; a dedicated native runtime thread owns AVS TLS and service lifetimes. It does not construct the catalog, menu or StageSession, and does not fall back to the component harness after an error. Debug builds can explicitly use the --component-harness launch argument; Release builds cannot select that route.
 
 ## Executed prefix and exact stopping point
 
@@ -8,9 +8,9 @@ The current owner verifies the hash-bound game DLL, reads prop/avs-config.xml th
 
 The owner allocates the two 16 MiB heap buffers selected by the original launcher for this game, imports the original 2528-byte configuration, applies product-mode corrections and allocates the recovered descriptor pool. It checks the descriptor arena extent using the original 24-byte record accounting, while native payloads remain pointer-width safe.
 
-It then reports bootComplete=false at libavs-win32.dll:0x10029410. This complete thread bootstrap remains missing. It initializes thread policy, workers and several resource pools; the separately recovered mutex and calling-thread components do not replace that chain. No descriptor-service start, filesystem boot, EA3 boot, game entry or TEST scene is invoked after that boundary. The original logging/filtering subsystem is also not complete; the on-screen trace is adapter diagnostics, not original log replay. These facts prevent interpreting this prefix as successful AVS initialization.
+It now executes the recovered thread construction chain, starts the reserved alarm task, starts the descriptor-service mutex and binds the main-thread context. With the normal configuration it reports bootComplete=false at libavs-win32.dll:0x10022CD0, the filesystem bootstrap. Earlier failures identify their actual stage. See [native runtime](AVS_NATIVE_RUNTIME.md) for ownership, source ordering and platform substitutions. Filesystem boot, EA3, game entry and TEST are not invoked. The original logging/filtering subsystem is also incomplete; the on-screen trace is adapter diagnostics, not original log replay. These facts prevent interpreting this prefix as successful AVS initialization.
 
-This Release build intentionally stops before the game. It replaces the misleading automatic harness route with visible recovery state, not with a completed original game runtime. The next required implementation is the complete 10029410 chain, followed by heap/time/filesystem/network stages and actual EA3/game ownership. Do not bypass the stop by supplying a successful callback.
+This Release build stops before the game. The next required integration is filesystem bootstrap, followed by heap/network stages and actual EA3/game ownership, while completing missing service exports and logging/property behavior. Do not bypass the stop by supplying a successful callback. Retry and directory changes stop and join the existing native owner before resource access is released.
 
 ## Other recovered services in this increment
 

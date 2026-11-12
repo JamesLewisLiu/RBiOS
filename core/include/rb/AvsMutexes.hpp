@@ -5,6 +5,7 @@
 #include <vector>
 #include <thread>
 #include <map>
+#include <functional>
 
 namespace rb {
 class AvsResourcePool;
@@ -12,11 +13,18 @@ class AvsResourcePool;
 // descriptor it creates. Destruction requires no holders or waiting threads.
 class AvsMutexes {
 public:
-    AvsMutexes(AvsDescriptors &descriptors, uint16_t capacity);
+    using Sleep = std::function<void(uint32_t milliseconds)>;
+    // Thread identities can register before original mutex pool boot. This
+    // constructor allocates no mutex resources or descriptors.
+    explicit AvsMutexes(AvsDescriptors &descriptors);
+    AvsMutexes(AvsDescriptors &descriptors, uint16_t capacity, uint16_t delayMilliseconds = 0, Sleep sleep = {});
     // The borrowed original 16-byte resource pool must share this descriptor
     // service and outlive this owner. Its capacity must fit uint16_t.
     // Do not reset or externally release this owner's allocated slots.
-    AvsMutexes(AvsDescriptors &descriptors, AvsResourcePool &pool);
+    AvsMutexes(AvsDescriptors &descriptors, AvsResourcePool &pool, uint16_t delayMilliseconds = 0, Sleep sleep = {});
+    void bindResourcePool(AvsResourcePool &pool, uint16_t delayMilliseconds = 0, Sleep sleep = {});
+    bool resourcePoolBound() const;
+    uint16_t delayMilliseconds() const;
     ~AvsMutexes();
     AvsMutexes(const AvsMutexes &) = delete;
     AvsMutexes &operator=(const AvsMutexes &) = delete;
@@ -53,6 +61,9 @@ private:
     Resource &resource(uint32_t token);
     AvsDescriptors &descriptors_;
     AvsResourcePool *externalPool_ = nullptr;
+    bool poolBound_ = false;
+    uint16_t delayMilliseconds_ = 0;
+    Sleep sleep_;
     mutable std::mutex poolMutex_;
     std::vector<std::unique_ptr<Resource>> records_;
     std::vector<uint32_t> ownedTokens_;

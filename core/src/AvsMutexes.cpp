@@ -2,6 +2,7 @@
 #include "rb/AvsResourcePool.hpp"
 #include <stdexcept>
 #include <system_error>
+#include <chrono>
 
 namespace rb {
 namespace {
@@ -10,8 +11,15 @@ uint16_t externalCapacity(const AvsResourcePool &pool) {
         throw std::invalid_argument("AVS mutex resource pool requires 16-byte elements and a 16-bit capacity");
     return uint16_t(pool.capacity());
 }
+AvsMutexes::Sleep nativeSleep(AvsMutexes::Sleep sleep) {
+    return sleep ? std::move(sleep) : AvsMutexes::Sleep([](uint32_t milliseconds) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    });
 }
-AvsMutexes::AvsMutexes(AvsDescriptors &descriptors, uint16_t capacity) : descriptors_(descriptors) {
+}
+AvsMutexes::AvsMutexes(AvsDescriptors &descriptors) : descriptors_(descriptors) {}
+AvsMutexes::AvsMutexes(AvsDescriptors &descriptors, uint16_t capacity, uint16_t delay, Sleep sleep)
+    : descriptors_(descriptors),delayMilliseconds_(delay),sleep_(nativeSleep(std::move(sleep))) {
     if (!capacity) throw std::invalid_argument("AVS mutex pool count must be nonzero");
     records_.reserve(capacity);
     free_.reserve(capacity);
@@ -19,15 +27,29 @@ AvsMutexes::AvsMutexes(AvsDescriptors &descriptors, uint16_t capacity) : descrip
         records_.push_back(std::make_unique<Resource>(this, i));
         free_.push_back(capacity - i - 1);
     }
+    poolBound_ = true;
 }
-AvsMutexes::AvsMutexes(AvsDescriptors &descriptors, AvsResourcePool &pool)
-    : AvsMutexes(descriptors, externalCapacity(pool)) {
+AvsMutexes::AvsMutexes(AvsDescriptors &descriptors, AvsResourcePool &pool, uint16_t delay, Sleep sleep)
+    : AvsMutexes(descriptors) { bindResourcePool(pool,delay,std::move(sleep)); }
+void AvsMutexes::bindResourcePool(AvsResourcePool &pool, uint16_t delay, Sleep sleep) {
+    std::lock_guard<std::mutex> lock(poolMutex_);
+    if (poolBound_) throw std::logic_error("AVS mutex resource pool is already bound");
+    const auto count = externalCapacity(pool);
     uintptr_t payload=0;
-    if (!descriptors.lookup(pool.descriptor(),&payload) || payload!=reinterpret_cast<uintptr_t>(&pool))
+    if (!descriptors_.lookup(pool.descriptor(),&payload) || payload!=reinterpret_cast<uintptr_t>(&pool))
         throw std::invalid_argument("AVS mutex resource pool must belong to the same descriptor service");
+    std::vector<std::unique_ptr<Resource>> records;
+    records.reserve(count);
+    for (size_t i=0;i<count;++i) records.push_back(std::make_unique<Resource>(this,i));
+    auto sleeper=nativeSleep(std::move(sleep));
+    records_ = std::move(records);
+    sleep_ = std::move(sleeper);
+    delayMilliseconds_ = delay;
     externalPool_ = &pool;
-    free_.clear();
+    poolBound_ = true;
 }
+bool AvsMutexes::resourcePoolBound() const { std::lock_guard<std::mutex> lock(poolMutex_);return poolBound_; }
+uint16_t AvsMutexes::delayMilliseconds() const { std::lock_guard<std::mutex> lock(poolMutex_);return delayMilliseconds_; }
 AvsMutexes::~AvsMutexes() {
     // Native owner lifetime cleanup, separate from the original 023 operation.
     for (const auto &record : records_) if (record->native) dispose(reinterpret_cast<uintptr_t>(record.get()));
@@ -133,6 +155,13 @@ void AvsMutexes::lock(uint32_t token, uintptr_t identity) {
     catch (...) { std::lock_guard<std::mutex> lock(poolMutex_); --resource(token).users; throw; }
     { std::lock_guard<std::mutex> lock(poolMutex_); auto &record = resource(token);
       record.holder = std::this_thread::get_id(); ++record.depth; }
+    // Original 10022940 delays after successful acquisition, including a
+    // recursive lock, while retaining ownership. Its zero guard skips Sleep
+    // and SwitchToThread altogether. Binding is immutable after publication.
+    if (delayMilliseconds_) {
+        try { sleep_(delayMilliseconds_); }
+        catch (...) { unlock(token); throw; } // Native injected-call failure.
+    }
 }
 void AvsMutexes::unlock(uint32_t token) {
     std::lock_guard<std::mutex> lock(poolMutex_);

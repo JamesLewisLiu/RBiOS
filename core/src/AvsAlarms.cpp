@@ -171,7 +171,11 @@ void AvsAlarms::run() {
         impl_->worker = false; impl_->wake.notify_all();
     } catch (...) { impl_->worker = false; impl_->wake.notify_all(); throw; }
 }
-void AvsAlarms::requestStop() { std::lock_guard<std::recursive_mutex> lock(impl_->mutex); impl_->stopping = true; impl_->wake.notify_all(); }
+void AvsAlarms::requestStop() {
+    std::lock_guard<std::recursive_mutex> lock(impl_->mutex);
+    if (!impl_->stopping && impl_->signals < impl_->semaphoreLimit) ++impl_->signals;
+    impl_->stopping = true; impl_->wake.notify_all();
+}
 bool AvsAlarms::running() const { std::lock_guard<std::recursive_mutex> lock(impl_->mutex); return impl_->worker; }
 AvsAlarms::State AvsAlarms::state() const {
     std::lock_guard<std::recursive_mutex> lock(impl_->mutex); State result{{},impl_->queue,impl_->free,impl_->minimum,impl_->used,impl_->highWater,impl_->signals};

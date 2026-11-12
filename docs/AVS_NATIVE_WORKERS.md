@@ -65,12 +65,19 @@ the retained source request. Invalid priorities outside 0 through 4 are rejected
 
 ## Identity and task lifetime
 
-Workers bind a real thread-local identity and explicitly register it with
-`AvsMutexes`. `currentWorkerIdentity()` returns that identity only on the worker.
-It is currently separate from `AvsThreadContext::currentIdentity()`; the original
-exported lock and thread-query adapters still need a unified TLS provider before
-arbitrary migrated game calls can use either owner interchangeably. A game call
-must not silently treat the other provider's zero identity as registered.
+Workers bind their actual stable native owner through `AvsThreadLocal` and
+explicitly register it with `AvsMutexes`. `currentWorkerIdentity()` and
+`AvsThreadContext::currentIdentity()` now delegate to the same provider. An
+assigned task's descriptor is attached before its procedure and remains visible
+during completion callbacks. An idle native worker has an identity but no active
+task. See `AVS_THREAD_LOCAL_AND_COMPLETION.md` for source self-query semantics.
+
+`PrivateOwner` constructs a single worker corresponding to an original NULL
+shared-pool owner pointer. It uses the same native thread/stack/priority and
+failure handling, but performs no `10041E40` pool construction, public checkout,
+idle/retired list publication or affinity accounting. The reserved alarm service
+can explicitly assign its procedure with descriptor `0x40003`. No alarm runs
+merely because the private worker is created.
 
 Task futures publish the action result after completion callbacks. An exception
 from the action or a callback is propagated through the future and retires the
@@ -127,8 +134,9 @@ worker states, remaining uses, requested stacks/priorities and affinity indices.
 It executes the original list and affinity functions instead of hooking them.
 See `AVS_TASKS.md` for finite task descriptors and the export-091 failure oracle.
 
-Full thread-context export integration and the other `10029410` services remain
-pending. `100419A0` enumerates task state; it is not task submission. The aggregate
+The other `10029410` services and complete export dispatch remain integration
+work. Shared TLS, self-descriptor query and completion registration are now
+implemented. `100419A0` enumerates task state; it is not task submission. The aggregate
 also initializes mutex, condition, event, semaphore and alarm services; this
 worker module does not bypass them. A corrupt idle list that causes original
 `10041D80` to loop forever is reported as an explicit native logic error.
